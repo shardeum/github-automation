@@ -1,0 +1,95 @@
+name: Shardeum Node CI
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+
+jobs:
+  merge-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.0.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4.0.0
+        with:
+          node-version: '${{ vars.NODE_VERSION }}'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: |
+          echo "Installing dependencies..."
+          npm ci --ignore-scripts
+          echo "Dependency installation complete."
+
+      - name: Lint
+        id: lint
+        run: |
+          echo "Running Linter..."
+          npm run lint
+          echo "Running Linter complete."
+        continue-on-error: true
+
+      - name: Format check
+        id: format_check
+        run: |
+          echo "Running format check..."
+          npm run format-check
+          echo "Format check complete."
+        continue-on-error: true
+
+      - name: Test apply patches
+        id: test_apply_patches
+        run: |
+          set -e
+          shopt -s nullglob
+          patches=(*.patch)
+          if [ ${#patches[@]} -eq 0 ]; then
+            echo "No patches to test."
+          else
+            for patch in "${patches[@]}"; do
+              echo "Testing $patch"
+              git apply --check -v "$patch" || (echo "Failed to apply patch: $patch" && exit 1)
+            done
+            echo "All patches applied successfully."
+          fi
+        continue-on-error: true
+
+      - name: Build
+        id: build
+        run: |
+          echo "Building the code..."
+          npm run build
+          echo "Build complete."
+
+      - name: Unit Tests
+        id: unit_tests
+        run: |
+          echo "Running Unit Tests..."
+          npm test
+          echo "Unit Tests complete."
+
+      - name: Check if any step failed
+        id: check_failure
+        run: |
+          if [[ "${{ steps.lint.outcome }}" == "failure" || "${{ steps.format_check.outcome }}" == "failure" || "${{ steps.build.outcome }}" == "failure" || "${{ steps.unit_tests.outcome }}" == "failure" || "${{ steps.test_apply_patches.outcome }}" == "failure" ]]; then
+            echo "A step has failed."
+            exit 1
+          fi
+
+      - name: Display failure image
+        if: failure()
+        run: |
+          echo "![Failure Image](${{ vars.FAILURE_IMAGE_URL }})"
+
+      - name: Display success image
+        if: success()
+        run: |
+          echo "![Success Image](${{ vars.SUCCESS_IMAGE_URL }})"
