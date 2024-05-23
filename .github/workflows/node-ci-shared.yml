@@ -80,8 +80,16 @@ jobs:
       - name: Check if any step failed
         id: check_failure
         run: |
-          if [[ "${{ steps.lint.outcome }}" == "failure" || "${{ steps.format_check.outcome }}" == "failure" || "${{ steps.build.outcome }}" == "failure" || "${{ steps.unit_tests.outcome }}" == "failure" || "${{ steps.test_apply_patches.outcome }}" == "failure" ]]; then
-            echo "A step has failed."
+          if [[ "${{ steps.lint.outcome }}" == "failure" || "${{ steps.format_check.outcome }}" == "failure" || "${{ steps.test_apply_patches.outcome }}" == "failure" ]]; then
+            if [[ "${{ steps.lint.outcome }}" == "failure" ]]; then
+              echo "ERROR! Step "lint" has failed! Please expand lint step output for more details."
+            fi
+            if [[ "${{ steps.format_check.outcome }}" == "failure" ]]; then
+              echo "ERROR! Step "format_check" has failed! Please expand format_check step output for more details."
+            fi
+            if [[ "${{ steps.test_apply_patches.outcome }}" == "failure" ]]; then
+              echo "ERROR! Step "test_apply_patches" has failed! Please expand test_apply_patches step output for more details."
+            fi
             exit 1
           fi
 
