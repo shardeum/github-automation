@@ -2,12 +2,30 @@ name: Shardeum Node CI
 
 on:
   workflow_call:
-    inputs:
+    inputs: &inputs
       node-version:
         required: false
         default: ${{ vars.NODE_VERSION }}
         type: string
+      lint-required:
+        required: false
+        default: ${{ vars.IS_LINT_REQUIRED }}
+        type: boolean
+      format-check-required:
+        required: false
+        default: ${{ vars.IS_FORMAT_CHECK_REQUIRED }}
+        type: boolean
+      apply-patches-required:
+        required: false
+        default: ${{ vars.IS_APPLY_PATCHES_REQUIRED }}
+        type: boolean
+      unit-tests-required:
+        required: false
+        default: ${{ vars.IS_UNIT_TESTS_REQUIRED }}
+        type: boolean
+
   workflow_dispatch:
+    inputs: *inputs
 
 jobs:
   merge-checks:
@@ -20,15 +38,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4.0.0
         with:
-          node-version: ${{ inputs['node-version'] }}
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
+          node-version: ${{ github.event.inputs['node-version'] }}
 
       - name: Install dependencies
         run: |
           echo "Installing dependencies..."
           npm ci --ignore-scripts
           echo "Dependency installation complete."
+        continue-on-error: false
 
       - name: Lint
         id: lint
@@ -69,6 +86,7 @@ jobs:
           echo "Building the code..."
           npm run build
           echo "Build complete."
+        continue-on-error: false
 
       - name: Unit Tests
         id: unit_tests
@@ -76,29 +94,45 @@ jobs:
           echo "Running Unit Tests..."
           npm test
           echo "Unit Tests complete."
+        continue-on-error: true
 
       - name: Check if any step failed
         id: check_failure
         run: |
-          if [[ "${{ steps.lint.outcome }}" == "failure" || "${{ steps.format_check.outcome }}" == "failure" || "${{ steps.test_apply_patches.outcome }}" == "failure" ]]; then
-            if [[ "${{ steps.lint.outcome }}" == "failure" ]]; then
-              echo "ERROR! Step "lint" has failed! Please expand lint step output for more details."
+          failed=false
+
+          # Check Lint
+          if [[ "${{ steps.lint.outcome }}" == "failure" ]]; then
+            echo "ERROR! Step 'lint' has failed! Please expand lint step output for more details."
+            if ${{ inputs.lint-required }}; then
+              failed=true
             fi
-            if [[ "${{ steps.format_check.outcome }}" == "failure" ]]; then
-              echo "ERROR! Step "format_check" has failed! Please expand format_check step output for more details."
-            fi
-            if [[ "${{ steps.test_apply_patches.outcome }}" == "failure" ]]; then
-              echo "ERROR! Step "test_apply_patches" has failed! Please expand test_apply_patches step output for more details."
-            fi
-            exit 1
           fi
 
-      - name: Display failure image
-        if: failure()
-        run: |
-          echo "![Failure Image](${{ vars.FAILURE_IMAGE_URL }})"
+          # Check Format Check
+          if [[ "${{ steps.format_check.outcome }}" == "failure" ]]; then
+            echo "ERROR! Step 'format_check' has failed! Please expand format_check step output for more details."
+            if ${{ inputs.format-check-required }}; then
+              failed=true
+            fi
+          fi
 
-      - name: Display success image
-        if: success()
-        run: |
-          echo "![Success Image](${{ vars.SUCCESS_IMAGE_URL }})"
+          # Check Apply Patches
+          if [[ "${{ steps.test_apply_patches.outcome }}" == "failure" ]]; then
+            echo "ERROR! Step 'test_apply_patches' has failed! Please expand test_apply_patches step output for more details."
+            if ${{ inputs.apply-patches-required }}; then
+              failed=true
+            fi
+          fi
+
+          # Check Unit Tests
+          if [[ "${{ steps.unit_tests.outcome }}" == "failure" ]]; then
+            echo "ERROR! Step 'unit_tests' has failed! Please expand unit_tests step output for more details."
+            if ${{ inputs.unit-tests-required }}; then
+              failed=true
+            fi
+          fi
+
+          if [ "$failed" == "true" ]; then
+            exit 1
+          fi
