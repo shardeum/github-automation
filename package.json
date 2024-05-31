@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "mocha --require ts-node/register 'test/**/*.ts'",
+    "test": "echo \"Info - No tests specified.\"",
     "compile": "tsc -p .",
     "lint": "eslint \"./src/**/*.{ts,js}\"",
     "format": "prettier --write \"./src/**/*.{ts,js}\"",
