@@ -1,7 +1,6 @@
 name: Shardeum Node CI
 on:
   workflow_call:
-  workflow_dispatch:
     inputs:
       node-version:
         required: false
