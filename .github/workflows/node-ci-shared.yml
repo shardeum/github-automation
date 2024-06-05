@@ -2,7 +2,8 @@ name: Shardeum Node CI
 
 on:
   workflow_call:
-    inputs: &inputs
+  workflow_dispatch:
+    inputs:
       node-version:
         required: false
         default: ${{ vars.NODE_VERSION }}
@@ -23,10 +24,6 @@ on:
         required: false
         default: ${{ vars.IS_UNIT_TESTS_REQUIRED }}
         type: boolean
-
-  workflow_dispatch:
-    inputs: *inputs
-
 jobs:
   merge-checks:
     runs-on: ubuntu-latest
