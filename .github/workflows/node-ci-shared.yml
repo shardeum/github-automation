@@ -2,7 +2,7 @@ name: Shardeum Node CI
 
 on:
   workflow_call:
-    inputs: &inputs
+    inputs:
       node-version:
         required: false
         default: ${{ vars.NODE_VERSION }}
@@ -23,10 +23,28 @@ on:
         required: false
         default: ${{ vars.IS_UNIT_TESTS_REQUIRED }}
         type: boolean
-
   workflow_dispatch:
-    inputs: *inputs
-
+    inputs:
+      node-version:
+        required: false
+        default: ${{ vars.NODE_VERSION }}
+        type: string
+      lint-required:
+        required: false
+        default: ${{ vars.IS_LINT_REQUIRED }}
+        type: boolean
+      format-check-required:
+        required: false
+        default: ${{ vars.IS_FORMAT_CHECK_REQUIRED }}
+        type: boolean
+      apply-patches-required:
+        required: false
+        default: ${{ vars.IS_APPLY_PATCHES_REQUIRED }}
+        type: boolean
+      unit-tests-required:
+        required: false
+        default: ${{ vars.IS_UNIT_TESTS_REQUIRED }}
+        type: boolean
 jobs:
   merge-checks:
     runs-on: ubuntu-latest
