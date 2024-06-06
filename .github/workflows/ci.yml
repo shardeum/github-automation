@@ -22,8 +22,8 @@ on:
 jobs:
   ci-dev:
     if: ${{ github.event.inputs.workflowBranch == 'dev' }}
-    uses: shardeum/github-automation/.github/workflows/node-ci-shared.yml@dev
+    uses: shardeum/github-automation/.github/workflows/node-ci-shared.yml@RED-120
 
   ci-main:
     if: ${{ github.event.inputs.workflowBranch == 'main' || !github.event.inputs.workflowBranch }}
-    uses: shardeum/github-automation/.github/workflows/node-ci-shared.yml@main
+    uses: shardeum/github-automation/.github/workflows/node-ci-shared.yml@RED-120
