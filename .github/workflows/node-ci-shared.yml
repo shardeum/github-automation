@@ -75,7 +75,7 @@ jobs:
   merge-checks:
     name: QA merge checks
     runs-on: ubuntu-latest
-    if: github.event_name != 'issue_comment'
+    if: ${{ github.event_name != 'issue_comment' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.0.0
@@ -193,11 +193,12 @@ jobs:
     name: Trigger QA Jenkins Job
     needs: merge-checks
     runs-on: ubuntu-latest
-    if: ${{ env.JENKINS_QA_JOB != '' }} && ${{ github.event_name != 'issue_comment' }}
+    if: ${{ env.JENKINS_QA_JOB != '' && github.event_name != 'issue_comment' }}
     steps:
       - name: Echo Input Values and Check Defaults
         run: |
           echo "Jenkins job Required:           ${{ env.IS_JENKINS_QA_REQUIRED }}"
+          echo "Jenkins job Required:           ${{ env.JENKINS_QA_JOB }}"
       - name: Configure
         id: configure
         run: |
