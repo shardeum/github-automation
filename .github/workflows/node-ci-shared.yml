@@ -31,6 +31,7 @@ on:
 
 jobs:
   debug-info:
+    runs-on: ubuntu-latest
     name: Display useful debugging information
     steps:
       - name: Display Event details
@@ -39,13 +40,13 @@ jobs:
           echo "Event Action:         ${{ github.event.action }}"
           echo "Event Sender Type:    ${{ github.event.sender.type }}"
   pr-agent:
+    name: Run pr agent on every pull request
     runs-on: ubuntu-latest
     if: ${{ github.event.sender.type != 'Bot' }}
     permissions:
       issues: write
       pull-requests: write
       contents: write
-    name: Run pr agent on every pull request
     steps:
       - name: PR Agent action step
         id: pragent
@@ -59,6 +60,7 @@ jobs:
         continue-on-error: true
 
   merge-checks:
+    name: QA merge checks
     runs-on: ubuntu-latest
     if: github.event_name != 'issue_comment'
     env:
@@ -181,9 +183,10 @@ jobs:
           fi
 
   trigger-jenkins-job:
-    if: ${{ vars.JENKINS_QA_JOB }} != '' && ${{ github.event_name }} != 'issue_comment'
+    name: Trigger QA Jenkins Job
     needs: merge-checks
     runs-on: ubuntu-latest
+    if: ${{ vars.JENKINS_QA_JOB }} != '' && ${{ github.event_name }} != 'issue_comment'
     env:
       IS_JENKINS_QA_REQUIRED: ${{ inputs.jenkins-qa-required || vars.IS_JENKINS_QA_REQUIRED }}
     steps:
