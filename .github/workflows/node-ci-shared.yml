@@ -27,11 +27,11 @@ jobs:
   merge-checks:
     runs-on: ubuntu-latest
     env:
-      NODE_VERSION: ${{ inputs.node-version || vars.NODE_VERSION }}
-      IS_LINT_REQUIRED: ${{ inputs.lint-required || vars.IS_LINT_REQUIRED }}
-      IS_FORMAT_CHECK_REQUIRED: ${{ inputs.format-check-required || vars.IS_FORMAT_CHECK_REQUIRED }}
-      IS_APPLY_PATCHES_REQUIRED: ${{ inputs.apply-patches-required || vars.IS_APPLY_PATCHES_REQUIRED }}
-      IS_UNIT_TESTS_REQUIRED: ${{ inputs.unit-tests-required || vars.IS_UNIT_TESTS_REQUIRED }}
+      NODE_VERSION: ${{ inputs.node-version }}
+      IS_LINT_REQUIRED: ${{ inputs.lint-required }}
+      IS_FORMAT_CHECK_REQUIRED: ${{ inputs.format-check-required }}
+      IS_APPLY_PATCHES_REQUIRED: ${{ inputs.apply-patches-required }}
+      IS_UNIT_TESTS_REQUIRED: ${{ inputs.unit-tests-required }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.0.0
