@@ -40,6 +40,13 @@ jobs:
         uses: actions/setup-node@v4.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
+      - name: Echo Input Values and Check Defaults
+        run: |
+          echo "Node Version:           ${{ env.NODE_VERSION }}"
+          echo "Lint Required:          ${{ env.IS_LINT_REQUIRED }}"
+          echo "Format Check Required:  ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
+          echo "Apply Patches Required: ${{ env.aIS_APPLY_PATCHES_REQUIRED }}"
+          echo "Unit Tests Required:    ${{ env.IS_UNIT_TESTS_REQUIRED }}" 
 
       - name: Install dependencies
         run: |
