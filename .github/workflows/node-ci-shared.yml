@@ -58,7 +58,7 @@ jobs:
 
       - name: Lint
         id: lint
-        if: ${{ env.IS_LINT_REQUIRED }}
+        if: ${{ env.IS_LINT_REQUIRED == 'true' }}
         run: |
           echo "Running Linter..."
           npm run lint
@@ -67,7 +67,7 @@ jobs:
 
       - name: Format check
         id: format_check
-        if: ${{ env.IS_FORMAT_CHECK_REQUIRED }}
+        if: ${{ env.IS_FORMAT_CHECK_REQUIRED == 'true' }}
         run: |
           echo "Running format check..."
           npm run format-check
@@ -76,7 +76,7 @@ jobs:
 
       - name: Test apply patches
         id: test_apply_patches
-        if: ${{ env.IS_APPLY_PATCHES_REQUIRED }}
+        if: ${{ env.IS_APPLY_PATCHES_REQUIRED == 'true' }}
         run: |
           set -e
           shopt -s nullglob
@@ -102,7 +102,7 @@ jobs:
 
       - name: Unit Tests
         id: unit_tests
-        if: ${{ env.IS_UNIT_TESTS_REQUIRED }}
+        if: ${{ env.IS_UNIT_TESTS_REQUIRED == 'true' }}
         run: |
           echo "Running Unit Tests..."
           npm test
@@ -117,7 +117,7 @@ jobs:
           # Check Lint
           if [[ "${{ steps.lint.outcome }}" == "failure" ]]; then
             echo "ERROR! Step 'lint' has failed! Please expand lint step output for more details."
-            if ${{ env.IS_LINT_REQUIRED }}; then
+            if ${{ env.IS_LINT_REQUIRED == 'true' }}; then
               failed=true
             fi
           fi
@@ -125,7 +125,7 @@ jobs:
           # Check Format Check
           if [[ "${{ steps.format_check.outcome }}" == "failure" ]]; then
             echo "ERROR! Step 'format_check' has failed! Please expand format_check step output for more details."
-            if ${{ env.IS_FORMAT_CHECK_REQUIRED }}; then
+            if ${{ env.IS_FORMAT_CHECK_REQUIRED == 'true' }}; then
               failed=true
             fi
           fi
@@ -133,7 +133,7 @@ jobs:
           # Check Apply Patches
           if [[ "${{ steps.test_apply_patches.outcome }}" == "failure" ]]; then
             echo "ERROR! Step 'test_apply_patches' has failed! Please expand test_apply_patches step output for more details."
-            if ${{ env.IS_APPLY_PATCHES_REQUIRED }}; then
+            if ${{ env.IS_APPLY_PATCHES_REQUIRED == 'true' }}; then
               failed=true
             fi
           fi
@@ -141,7 +141,7 @@ jobs:
           # Check Unit Tests
           if [[ "${{ steps.unit_tests.outcome }}" == "failure" ]]; then
             echo "ERROR! Step 'unit_tests' has failed! Please expand unit_tests step output for more details."
-            if ${{ env.IS_UNIT_TESTS_REQUIRED }}; then
+            if ${{ env.IS_UNIT_TESTS_REQUIRED == 'true' }}; then
               failed=true
             fi
           fi
