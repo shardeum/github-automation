@@ -1,8 +1,8 @@
 name: Shardeum Reusable CI Workflow for Node projects
+
 on:
   issue_comment:
   workflow_call:
-  workflow_dispatch:
     inputs:
       node-version:
         required: false
@@ -48,16 +48,16 @@ jobs:
     name: Run pr agent on every pull request
     runs-on: ubuntu-latest
     if: ${{ github.event.sender.type != 'Bot' }}
+    env:
+      OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      github_action_config.auto_review: "true" # enable auto review
+      github_action_config.auto_describe: "false" # disable auto describe
+      github_action_config.auto_improve: "false" # disable auto improve
     steps:
       - name: PR Agent action step
         id: pragent
         uses: Codium-ai/pr-agent@main
-        env:
-          OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          github_action_config.auto_review: "true" # enable auto review
-          github_action_config.auto_describe: "false" # disable auto describe
-          github_action_config.auto_improve: "false" # disable auto improve
         continue-on-error: true
 
   merge-checks:
@@ -148,7 +148,7 @@ jobs:
           
           # Check Lint
           if [[ "${{ steps.lint.outcome }}" == "failure" ]]; then
-            echo "ERROR! Step 'lint' has failed!"
+            echo "ERROR! Step 'lint' has failed! Please expand the step output for more details."
             if ${{ env.IS_LINT_REQUIRED }}; then
               failed=true
             fi
@@ -187,7 +187,7 @@ jobs:
     name: Trigger QA Jenkins Job
     needs: merge-checks
     runs-on: ubuntu-latest
-    if: ${{ vars.JENKINS_QA_JOB }} != '' && ${{ github.event_name }} != 'issue_comment'
+    if: ${{ vars.JENKINS_QA_JOB != '' }} && ${{ github.event_name != 'issue_comment' }}
     env:
       IS_JENKINS_QA_REQUIRED: ${{ inputs.jenkins-qa-required || vars.IS_JENKINS_QA_REQUIRED }}
     steps:
