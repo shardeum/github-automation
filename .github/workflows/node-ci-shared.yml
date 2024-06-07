@@ -45,105 +45,101 @@ jobs:
           echo "Node Version:           ${{ env.NODE_VERSION }}"
           echo "Lint Required:          ${{ env.IS_LINT_REQUIRED }}"
           echo "Format Check Required:  ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
-  <<<<<<< HEAD
-echo "Apply Patches Required: ${{ env.aIS_APPLY_PATCHES_REQUIRED }}"
-  =======
-echo "Apply Patches Required: ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
-  >>>>>>> 5534f9f (typo)
-echo "Unit Tests Required:    ${{ env.IS_UNIT_TESTS_REQUIRED }}"
-- name: Install dependencies
-  run: |
-    echo "Installing dependencies..."
-    npm ci --ignore-scripts
-    echo "Dependency installation complete."
-  continue-on-error: false
+          echo "Apply Patches Required: ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
+          echo "Unit Tests Required:    ${{ env.IS_UNIT_TESTS_REQUIRED }}"
+      - name: Install dependencies
+        run: |
+          echo "Installing dependencies..."
+          npm ci --ignore-scripts
+          echo "Dependency installation complete."
+        continue-on-error: false
 
-- name: Lint
-  id: lint
-  run: |
-    echo "Running Linter..."
-    npm run lint
-    echo "Running Linter complete."
-  continue-on-error: true
+      - name: Lint
+        id: lint
+        run: |
+          echo "Running Linter..."
+          npm run lint
+          echo "Running Linter complete."
+        continue-on-error: true
 
-- name: Format check
-  id: format_check
-  run: |
-    echo "Running format check..."
-    npm run format-check
-    echo "Format check complete."
-  continue-on-error: true
+      - name: Format check
+        id: format_check
+        run: |
+          echo "Running format check..."
+          npm run format-check
+          echo "Format check complete."
+        continue-on-error: true
 
-- name: Test apply patches
-  id: test_apply_patches
-  run: |
-    set -e
-    shopt -s nullglob
-    patches=(*.patch)
-    if [ ${#patches[@]} -eq 0 ]; then
-      echo "No patches to test."
-    else
-      for patch in "${patches[@]}"; do
-        echo "Testing $patch"
-        git apply --check -v "$patch" || (echo "Failed to apply patch: $patch" && exit 1)
-      done
-      echo "All patches applied successfully."
-    fi
-  continue-on-error: true
+      - name: Test apply patches
+        id: test_apply_patches
+        run: |
+          set -e
+          shopt -s nullglob
+          patches=(*.patch)
+          if [ ${#patches[@]} -eq 0 ]; then
+            echo "No patches to test."
+          else
+            for patch in "${patches[@]}"; do
+              echo "Testing $patch"
+              git apply --check -v "$patch" || (echo "Failed to apply patch: $patch" && exit 1)
+            done
+            echo "All patches applied successfully."
+          fi
+        continue-on-error: true
 
-- name: Build
-  id: build
-  run: |
-    echo "Building the code..."
-    npm run build
-    echo "Build complete."
-  continue-on-error: false
+      - name: Build
+        id: build
+        run: |
+          echo "Building the code..."
+          npm run build
+          echo "Build complete."
+        continue-on-error: false
 
-- name: Unit Tests
-  id: unit_tests
-  run: |
-    echo "Running Unit Tests..."
-    npm test
-    echo "Unit Tests complete."
-  continue-on-error: true
+      - name: Unit Tests
+        id: unit_tests
+        run: |
+          echo "Running Unit Tests..."
+          npm test
+          echo "Unit Tests complete."
+        continue-on-error: true
 
-- name: Check if any step failed
-  id: check_failure
-  run: |
-    failed=false
-    
-    # Check Lint
-    if [[ "${{ steps.lint.outcome }}" == "failure" ]]; then
-      echo "ERROR! Step 'lint' has failed! Please expand lint step output for more details."
-      if ${{ env.IS_LINT_REQUIRED }}; then
-        failed=true
-      fi
-    fi
-    
-    # Check Format Check
-    if [[ "${{ steps.format_check.outcome }}" == "failure" ]]; then
-      echo "ERROR! Step 'format_check' has failed! Please expand format_check step output for more details."
-      if ${{ env.IS_FORMAT_CHECK_REQUIRED }}; then
-        failed=true
-      fi
-    fi
-    
-    # Check Apply Patches
-    if [[ "${{ steps.test_apply_patches.outcome }}" == "failure" ]]; then
-      echo "ERROR! Step 'test_apply_patches' has failed! Please expand test_apply_patches step output for more details."
-      if ${{ env.IS_APPLY_PATCHES_REQUIRED }}; then
-        failed=true
-      fi
-    fi
-    
-    # Check Unit Tests
-    if [[ "${{ steps.unit_tests.outcome }}" == "failure" ]]; then
-      echo "ERROR! Step 'unit_tests' has failed! Please expand unit_tests step output for more details."
-      if ${{ env.IS_UNIT_TESTS_REQUIRED }}; then
-        failed=true
-      fi
-    fi
-    
-    if [ "$failed" == "true" ]; then
-      exit 1
-    fi
+      - name: Check if any step failed
+        id: check_failure
+        run: |
+          failed=false
+          
+          # Check Lint
+          if [[ "${{ steps.lint.outcome }}" == "failure" ]]; then
+            echo "ERROR! Step 'lint' has failed! Please expand lint step output for more details."
+            if ${{ env.IS_LINT_REQUIRED }}; then
+              failed=true
+            fi
+          fi
+          
+          # Check Format Check
+          if [[ "${{ steps.format_check.outcome }}" == "failure" ]]; then
+            echo "ERROR! Step 'format_check' has failed! Please expand format_check step output for more details."
+            if ${{ env.IS_FORMAT_CHECK_REQUIRED }}; then
+              failed=true
+            fi
+          fi
+          
+          # Check Apply Patches
+          if [[ "${{ steps.test_apply_patches.outcome }}" == "failure" ]]; then
+            echo "ERROR! Step 'test_apply_patches' has failed! Please expand test_apply_patches step output for more details."
+            if ${{ env.IS_APPLY_PATCHES_REQUIRED }}; then
+              failed=true
+            fi
+          fi
+          
+          # Check Unit Tests
+          if [[ "${{ steps.unit_tests.outcome }}" == "failure" ]]; then
+            echo "ERROR! Step 'unit_tests' has failed! Please expand unit_tests step output for more details."
+            if ${{ env.IS_UNIT_TESTS_REQUIRED }}; then
+              failed=true
+            fi
+          fi
+          
+          if [ "$failed" == "true" ]; then
+            exit 1
+          fi
