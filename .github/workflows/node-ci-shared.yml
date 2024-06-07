@@ -55,6 +55,7 @@ jobs:
 
       - name: Lint
         id: lint
+        if: ${{ inputs.lint-required }}
         run: |
           echo "Running Linter..."
           npm run lint
@@ -63,6 +64,7 @@ jobs:
 
       - name: Format check
         id: format_check
+        if: ${{ inputs.format-check-required }}
         run: |
           echo "Running format check..."
           npm run format-check
@@ -71,6 +73,7 @@ jobs:
 
       - name: Test apply patches
         id: test_apply_patches
+        if: ${{ inputs.apply-patches-required }}
         run: |
           set -e
           shopt -s nullglob
@@ -96,6 +99,7 @@ jobs:
 
       - name: Unit Tests
         id: unit_tests
+        if: ${{ inputs.unit-tests-required }}
         run: |
           echo "Running Unit Tests..."
           npm test
