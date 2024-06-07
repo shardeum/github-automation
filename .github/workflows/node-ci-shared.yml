@@ -1,8 +1,4 @@
 name: Shardeum Node CI
-env:
-  NODE_VERSION: ${{ vars.NODE_VERSION }}
-  IS_LINT_REQUIRED: ${{ vars.IS_LINT_REQUIRED }}
-  IS_FORMAT_CHECK_REQUIRED: ${{ vars.IS_FORMAT_CHECK_REQUIRED }}
 on:
   workflow_call:
   workflow_dispatch:
