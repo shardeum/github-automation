@@ -41,7 +41,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
       - name: Echo Input Values and Check Defaults
         run: |
-          echo "Node Version :           ${{ env.NODE_VERSION }}               Default: 16.18.1"
+          echo "Node Version :           ${{ env.NODE_VERSION }}               Default: 18.6.1"
           echo "Lint Required :          ${{ env.IS_LINT_REQUIRED  }}          Default: true"
           echo "Format Check Required :  ${{ env.IS_FORMAT_CHECK_REQUIRED }}   Default: true"
           echo "Apply Patches Required : ${{ env.IS_APPLY_PATCHES_REQUIRED }}  Default: true"
