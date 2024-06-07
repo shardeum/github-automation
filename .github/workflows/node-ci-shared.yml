@@ -30,7 +30,6 @@ on:
         type: boolean
 
 permissions:
-  contents: write
   issues: write
   pull-requests: write
 
@@ -44,21 +43,23 @@ jobs:
           echo "Event Name:           ${{ github.event_name }}"
           echo "Event Action:         ${{ github.event.action }}"
           echo "Event Sender Type:    ${{ github.event.sender.type }}"
-  pr-agent:
-    name: Run pr agent on every pull request
+  pr_agent_job:
+    name: Run pr agent on every pull request, respond to user comments
     runs-on: ubuntu-latest
     if: ${{ github.event.sender.type != 'Bot' }}
-    env:
-      OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      github_action_config.auto_review: "true" # enable auto review
-      github_action_config.auto_describe: "false" # disable auto describe
-      github_action_config.auto_improve: "false" # disable auto improve
+    permissions:
+      issues: write
+      pull-requests: write
     steps:
       - name: PR Agent action step
         id: pragent
         uses: Codium-ai/pr-agent@main
-        continue-on-error: true
+        env:
+          OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_action_config.auto_review: "true" # enable auto review
+          github_action_config.auto_describe: "false" # disable auto describe
+          github_action_config.auto_improve: "false" # disable auto improve
 
   merge-checks:
     name: QA merge checks
@@ -244,3 +245,4 @@ jobs:
             echo "Please expand the failed step(s) for more details."
             exit 1
           fi
+        continue-on-error: true
