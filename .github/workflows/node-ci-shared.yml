@@ -1,54 +1,37 @@
 name: Shardeum Node CI
-
 on:
   workflow_call:
-    inputs:
-      node-version:
-        required: false
-        default: ${{ vars.NODE_VERSION }}
-        type: string
-      lint-required:
-        required: false
-        default: ${{ vars.IS_LINT_REQUIRED }}
-        type: boolean
-      format-check-required:
-        required: false
-        default: ${{ vars.IS_FORMAT_CHECK_REQUIRED }}
-        type: boolean
-      apply-patches-required:
-        required: false
-        default: ${{ vars.IS_APPLY_PATCHES_REQUIRED }}
-        type: boolean
-      unit-tests-required:
-        required: false
-        default: ${{ vars.IS_UNIT_TESTS_REQUIRED }}
-        type: boolean
   workflow_dispatch:
     inputs:
       node-version:
         required: false
-        default: ${{ vars.NODE_VERSION }}
+        default: "18.16.1"
         type: string
       lint-required:
         required: false
-        default: ${{ vars.IS_LINT_REQUIRED }}
+        default: "true"
         type: boolean
       format-check-required:
         required: false
-        default: ${{ vars.IS_FORMAT_CHECK_REQUIRED }}
+        default: "true"
         type: boolean
       apply-patches-required:
         required: false
-        default: ${{ vars.IS_APPLY_PATCHES_REQUIRED }}
+        default: "true"
         type: boolean
       unit-tests-required:
         required: false
-        default: ${{ vars.IS_UNIT_TESTS_REQUIRED }}
+        default: "true"
         type: boolean
 jobs:
   merge-checks:
     runs-on: ubuntu-latest
-
+    env:
+      NODE_VERSION: ${{ inputs.node-version || vars.NODE_VERSION }}
+      IS_LINT_REQUIRED: ${{ inputs.lint-required || vars.IS_LINT_REQUIRED }}
+      IS_FORMAT_CHECK_REQUIRED: ${{ inputs.format-check-required || vars.IS_FORMAT_CHECK_REQUIRED }}
+      IS_APPLY_PATCHES_REQUIRED: ${{ inputs.apply-patches-required || vars.IS_APPLY_PATCHES_REQUIRED }}
+      IS_UNIT_TESTS_REQUIRED: ${{ inputs.unit-tests-required || vars.IS_UNIT_TESTS_REQUIRED }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.0.0
@@ -56,7 +39,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4.0.0
         with:
-          node-version: ${{ github.event.inputs['node-version'] }}
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Install dependencies
         run: |
@@ -122,7 +105,7 @@ jobs:
           # Check Lint
           if [[ "${{ steps.lint.outcome }}" == "failure" ]]; then
             echo "ERROR! Step 'lint' has failed! Please expand lint step output for more details."
-            if ${{ inputs.lint-required }}; then
+            if ${{ env.IS_LINT_REQUIRED }}; then
               failed=true
             fi
           fi
@@ -130,7 +113,7 @@ jobs:
           # Check Format Check
           if [[ "${{ steps.format_check.outcome }}" == "failure" ]]; then
             echo "ERROR! Step 'format_check' has failed! Please expand format_check step output for more details."
-            if ${{ inputs.format-check-required }}; then
+            if ${{ env.IS_FORMAT_CHECK_REQUIRED }}; then
               failed=true
             fi
           fi
@@ -138,7 +121,7 @@ jobs:
           # Check Apply Patches
           if [[ "${{ steps.test_apply_patches.outcome }}" == "failure" ]]; then
             echo "ERROR! Step 'test_apply_patches' has failed! Please expand test_apply_patches step output for more details."
-            if ${{ inputs.apply-patches-required }}; then
+            if ${{ env.IS_APPLY_PATCHES_REQUIRED }}; then
               failed=true
             fi
           fi
@@ -146,7 +129,7 @@ jobs:
           # Check Unit Tests
           if [[ "${{ steps.unit_tests.outcome }}" == "failure" ]]; then
             echo "ERROR! Step 'unit_tests' has failed! Please expand unit_tests step output for more details."
-            if ${{ inputs.unit-tests-required }}; then
+            if ${{ env.IS_UNIT_TESTS_REQUIRED }}; then
               failed=true
             fi
           fi
