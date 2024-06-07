@@ -9,19 +9,19 @@ on:
         type: string
       lint-required:
         required: false
-        default: "true"
+        default: true
         type: boolean
       format-check-required:
         required: false
-        default: "true"
+        default: true
         type: boolean
       apply-patches-required:
         required: false
-        default: "true"
+        default: true
         type: boolean
       unit-tests-required:
         required: false
-        default: "true"
+        default: true
         type: boolean
 jobs:
   merge-checks:
