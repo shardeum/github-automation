@@ -33,6 +33,17 @@ permissions:
   issues: write
   pull-requests: write
 
+# Repository variables must be passed in at the workflow level
+env:
+  NODE_VERSION: ${{ inputs.node-version || vars.NODE_VERSION }}
+  JENKINS_QA_JOB: ${{ vars.JENKINS_QA_JOB || '' }}
+  IS_LINT_REQUIRED: ${{ inputs.lint-required || vars.IS_LINT_REQUIRED }}
+  IS_FORMAT_CHECK_REQUIRED: ${{ inputs.format-check-required || vars.IS_FORMAT_CHECK_REQUIRED }}
+  IS_APPLY_PATCHES_REQUIRED: ${{ inputs.apply-patches-required || vars.IS_APPLY_PATCHES_REQUIRED }}
+  IS_UNIT_TESTS_REQUIRED: ${{ inputs.unit-tests-required || vars.IS_UNIT_TESTS_REQUIRED }}
+  IS_JENKINS_QA_REQUIRED: ${{ inputs.jenkins-qa-required || vars.IS_JENKINS_QA_REQUIRED }}
+  JENKINS_URL: ${{ vars.JENKINS_URL }}
+
 jobs:
   debug-info:
     runs-on: ubuntu-latest
@@ -65,12 +76,6 @@ jobs:
     name: QA merge checks
     runs-on: ubuntu-latest
     if: github.event_name != 'issue_comment'
-    env:
-      NODE_VERSION: ${{ inputs.node-version || vars.NODE_VERSION }}
-      IS_LINT_REQUIRED: ${{ inputs.lint-required || vars.IS_LINT_REQUIRED }}
-      IS_FORMAT_CHECK_REQUIRED: ${{ inputs.format-check-required || vars.IS_FORMAT_CHECK_REQUIRED }}
-      IS_APPLY_PATCHES_REQUIRED: ${{ inputs.apply-patches-required || vars.IS_APPLY_PATCHES_REQUIRED }}
-      IS_UNIT_TESTS_REQUIRED: ${{ inputs.unit-tests-required || vars.IS_UNIT_TESTS_REQUIRED }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.0.0
@@ -188,15 +193,13 @@ jobs:
     name: Trigger QA Jenkins Job
     needs: merge-checks
     runs-on: ubuntu-latest
-    if: ${{ vars.JENKINS_QA_JOB != '' }} && ${{ github.event_name != 'issue_comment' }}
-    env:
-      IS_JENKINS_QA_REQUIRED: ${{ inputs.jenkins-qa-required || vars.IS_JENKINS_QA_REQUIRED }}
+    if: ${{ env.JENKINS_QA_JOB != '' }} && ${{ github.event_name != 'issue_comment' }}
     steps:
       - name: Echo Input Values and Check Defaults
         run: |
           echo "Jenkins job Required:           ${{ env.IS_JENKINS_QA_REQUIRED }}"
-      - name: Set Branch Name
-        id: vars
+      - name: Configure
+        id: configure
         run: |
           # Determine the branch name
           if [ "${{ github.event_name }}" == "pull_request" ]; then
@@ -206,8 +209,8 @@ jobs:
           fi
           
           # Determine the repository name, prioritize the secret if it exists
-          if [ -n "${{ vars.REPO_NAME }}" ]; then
-            REPO_NAME=${{ vars.REPO_NAME }}
+          if [ -n "${{ env.REPO_NAME }}" ]; then
+            REPO_NAME=${{ env.REPO_NAME }}
           else
             REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
           fi
@@ -222,10 +225,10 @@ jobs:
         id: trigger_jenkins_qa_job
         env:
           BRANCH_NAME: ${{ env.BRANCH_NAME }}
-          REPO_NAME: ${{ env.REPO_NAME }}
-          JENKINS_URL: ${{ vars.JENKINS_URL }}
+          REPO_NAME: ${{ vars.REPO_NAME }}
+          JENKINS_URL: ${{ env.JENKINS_URL }}
         run: |
-          curl -f -X POST "${JENKINS_URL}/job/${{ vars.JENKINS_QA_JOB }}/buildWithParameters?SPECIFY_${REPO_NAME}_BRANCH=true&${REPO_NAME}_BRANCH=${BRANCH_NAME}" \
+          curl -f -X POST "${JENKINS_URL}/job/${{ env.JENKINS_QA_JOB }}/buildWithParameters?SPECIFY_${REPO_NAME}_BRANCH=true&${REPO_NAME}_BRANCH=${BRANCH_NAME}" \
             --user "${{ secrets.JENKINS_API_CREDS }}"
         continue-on-error: true
 
@@ -245,4 +248,3 @@ jobs:
             echo "Please expand the failed step(s) for more details."
             exit 1
           fi
-        continue-on-error: true
