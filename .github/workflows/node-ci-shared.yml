@@ -1,8 +1,8 @@
 name: Shardeum Reusable CI Workflow for Node projects
-
 on:
   issue_comment:
   workflow_call:
+  workflow_dispatch:
     inputs:
       node-version:
         required: false
@@ -148,7 +148,7 @@ jobs:
           
           # Check Lint
           if [[ "${{ steps.lint.outcome }}" == "failure" ]]; then
-            echo "ERROR! Step 'lint' has failed! Please expand the step output for more details."
+            echo "ERROR! Step 'lint' has failed!"
             if ${{ env.IS_LINT_REQUIRED }}; then
               failed=true
             fi
