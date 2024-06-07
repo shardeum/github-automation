@@ -189,11 +189,29 @@ jobs:
             exit 1
           fi
 
+  # This job is needed to get around the fact that GitHub doesn't let you reference an env in the 'if' for the job
+  determine-jenkins:
+    name: Determine Jenkins Job Requirement
+    runs-on: ubuntu-latest
+    outputs:
+      run-jenkins: ${{ steps.check.outputs.run-jenkins }}
+    steps:
+      - name: Check if Jenkins QA job is required
+        id: check
+        run: |
+          if [ -n "${{ env.JENKINS_QA_JOB }}" ]; then
+            echo "run-jenkins=true" >> $GITHUB_ENV
+            echo "::set-output name=run-jenkins::true"
+          else
+            echo "run-jenkins=false" >> $GITHUB_ENV
+            echo "::set-output name=run-jenkins::false"
+          fi
+
   trigger-jenkins-job:
     name: Trigger QA Jenkins Job
-    needs: merge-checks
+    needs: [merge-checks, determine-jenkins]
     runs-on: ubuntu-latest
-    if: ${{ env.JENKINS_QA_JOB != '' && github.event_name != 'issue_comment' }}
+    if: ${{ github.event_name != 'issue_comment' && needs.determine-jenkins.outputs.run-jenkins == 'true' }}
     steps:
       - name: Echo Input Values and Check Defaults
         run: |
