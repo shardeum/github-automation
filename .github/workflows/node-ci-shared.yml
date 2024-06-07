@@ -1,7 +1,8 @@
-name: Shardeum Node CI
+name: Shardeum Reusable CI Workflow for Node projects
+
 on:
+  issue_comment:
   workflow_call:
-  workflow_dispatch:
     inputs:
       node-version:
         required: false
@@ -23,9 +24,43 @@ on:
         required: false
         default: true
         type: boolean
+      jenkins-qa-required:
+        required: false
+        default: true
+        type: boolean
+
 jobs:
+  debug-info:
+    name: Display useful debugging information
+    steps:
+      - name: Display Event details
+        run: |
+          echo "Event Name:           ${{ github.event_name }}"
+          echo "Event Action:         ${{ github.event.action }}"
+          echo "Event Sender Type:    ${{ github.event.sender.type }}"
+  pr-agent:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.sender.type != 'Bot' }}
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+    name: Run pr agent on every pull request
+    steps:
+      - name: PR Agent action step
+        id: pragent
+        uses: Codium-ai/pr-agent@main
+        env:
+          OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_action_config.auto_review: "true" # enable auto review
+          github_action_config.auto_describe: "false" # disable auto describe
+          github_action_config.auto_improve: "false" # disable auto improve
+        continue-on-error: true
+
   merge-checks:
     runs-on: ubuntu-latest
+    if: github.event_name != 'issue_comment'
     env:
       NODE_VERSION: ${{ inputs.node-version || vars.NODE_VERSION }}
       IS_LINT_REQUIRED: ${{ inputs.lint-required || vars.IS_LINT_REQUIRED }}
@@ -110,7 +145,7 @@ jobs:
           
           # Check Lint
           if [[ "${{ steps.lint.outcome }}" == "failure" ]]; then
-            echo "ERROR! Step 'lint' has failed! Please expand lint step output for more details."
+            echo "ERROR! Step 'lint' has failed! Please expand the step output for more details."
             if ${{ env.IS_LINT_REQUIRED }}; then
               failed=true
             fi
@@ -118,7 +153,7 @@ jobs:
           
           # Check Format Check
           if [[ "${{ steps.format_check.outcome }}" == "failure" ]]; then
-            echo "ERROR! Step 'format_check' has failed! Please expand format_check step output for more details."
+            echo "ERROR! Step 'format_check' has failed!"
             if ${{ env.IS_FORMAT_CHECK_REQUIRED }}; then
               failed=true
             fi
@@ -126,7 +161,7 @@ jobs:
           
           # Check Apply Patches
           if [[ "${{ steps.test_apply_patches.outcome }}" == "failure" ]]; then
-            echo "ERROR! Step 'test_apply_patches' has failed! Please expand test_apply_patches step output for more details."
+            echo "ERROR! Step 'test_apply_patches' has failed!"
             if ${{ env.IS_APPLY_PATCHES_REQUIRED }}; then
               failed=true
             fi
@@ -134,12 +169,74 @@ jobs:
           
           # Check Unit Tests
           if [[ "${{ steps.unit_tests.outcome }}" == "failure" ]]; then
-            echo "ERROR! Step 'unit_tests' has failed! Please expand unit_tests step output for more details."
+            echo "ERROR! Step 'unit_tests' has failed!"
             if ${{ env.IS_UNIT_TESTS_REQUIRED }}; then
               failed=true
             fi
           fi
           
           if [ "$failed" == "true" ]; then
+            echo "Please expand the failed step(s) for more details."
+            exit 1
+          fi
+
+  trigger-jenkins-job:
+    if: ${{ vars.JENKINS_QA_JOB }} != '' && ${{ github.event_name }} != 'issue_comment'
+    needs: merge-checks
+    runs-on: ubuntu-latest
+    env:
+      IS_JENKINS_QA_REQUIRED: ${{ inputs.jenkins-qa-required || vars.IS_JENKINS_QA_REQUIRED }}
+    steps:
+      - name: Echo Input Values and Check Defaults
+        run: |
+          echo "Jenkins job Required:           ${{ env.IS_JENKINS_QA_REQUIRED }}"
+      - name: Set Branch Name
+        id: vars
+        run: |
+          # Determine the branch name
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "BRANCH_NAME=${{ github.head_ref }}" >> $GITHUB_ENV
+          else
+            echo "BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+          fi
+          
+          # Determine the repository name, prioritize the secret if it exists
+          if [ -n "${{ vars.REPO_NAME }}" ]; then
+            REPO_NAME=${{ vars.REPO_NAME }}
+          else
+            REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
+          fi
+          
+          # Capitalize the repository name
+          REPO_NAME_CAPITALIZED=$(echo "${REPO_NAME:0:1}" | tr '[:lower:]' '[:upper:]')${REPO_NAME:1}
+          
+          # Export the environment variables
+          echo "REPO_NAME=${REPO_NAME_CAPITALIZED}" >> $GITHUB_ENV
+
+      - name: Trigger Jenkins QA Job
+        id: trigger_jenkins_qa_job
+        env:
+          BRANCH_NAME: ${{ env.BRANCH_NAME }}
+          REPO_NAME: ${{ env.REPO_NAME }}
+          JENKINS_URL: ${{ vars.JENKINS_URL }}
+        run: |
+          curl -f -X POST "${JENKINS_URL}/job/${{ vars.JENKINS_QA_JOB }}/buildWithParameters?SPECIFY_${REPO_NAME}_BRANCH=true&${REPO_NAME}_BRANCH=${BRANCH_NAME}" \
+            --user "${{ secrets.JENKINS_API_CREDS }}"
+        continue-on-error: true
+
+      - name: Check if any step failed
+        id: check_failure
+        run: |
+          failed=false
+          
+          # Check Jenkins QA job - This just checks that the workflow step passes but will later be configured to wait for the actual Jenkins job to pass/fail
+          if [[ "${{ steps.trigger_jenkins_qa_job.outcome }}" == "failure" ]]; then
+            echo "ERROR! Step 'Trigger Jenkins QA Job' has failed!"
+            if ${{ env.IS_JENKINS_QA_REQUIRED }}; then
+              failed=true
+            fi
+          fi
+          if [ "$failed" == "true" ]; then
+            echo "Please expand the failed step(s) for more details."
             exit 1
           fi

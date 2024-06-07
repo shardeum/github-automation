@@ -19,6 +19,7 @@ on:
         options:
           - dev
           - main
+
 jobs:
   ci-dev:
     if: ${{ github.event.inputs.workflowBranch == 'dev' }}
