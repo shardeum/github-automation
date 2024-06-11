@@ -27,10 +27,24 @@ permissions:
 jobs:
   ci-dev:
     if: ${{ github.event.inputs.workflowBranch == 'dev' }}
-    uses: shardeum/github-automation/.github/workflows/node-ci-shared.yml@dev
+    uses: shardeum/github-automation/.github/workflows/node-ci-shared.yml@RED-120
+    # uncomment if wanting to override the defaults
+    # with:
+    #   lint-required: true
+    #   format-check-required: true
+    #   apply-patches-required: true
+    #   unit-tests-required: true
+    #   jenkins-qa-required: true
     secrets: inherit
 
   ci-main:
     if: ${{ github.event.inputs.workflowBranch == 'main' || !github.event.inputs.workflowBranch }}
-    uses: shardeum/github-automation/.github/workflows/node-ci-shared.yml@main
+    uses: shardeum/github-automation/.github/workflows/node-ci-shared.yml@RED-120
+    # uncomment if wanting to override the defaults
+    # with:
+    #   lint-required: true
+    #   format-check-required: true
+    #   apply-patches-required: false
+    #   unit-tests-required: true
+    #   jenkins-qa-required: true
     secrets: inherit
