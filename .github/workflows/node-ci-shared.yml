@@ -84,13 +84,15 @@ jobs:
         uses: actions/setup-node@v4.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
+
       - name: Echo Input Values and Check Defaults
         run: |
-          echo "Node Version:           ${{ env.NODE_VERSION }}"
-          echo "Lint Required:          ${{ env.IS_LINT_REQUIRED }}"
-          echo "Format Check Required:  ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
-          echo "Apply Patches Required: ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
-          echo "Unit Tests Required:    ${{ env.IS_UNIT_TESTS_REQUIRED }}"
+          echo "Node Version: ${{ env.NODE_VERSION }} (Env) | Default: 18.16.1 | Input: ${{ inputs.node-version }}"
+          echo "Lint Required: ${{ env.IS_LINT_REQUIRED }} (Env) | Default: true | Input: ${{ inputs.lint-required }}"
+          echo "Format Check Required: ${{ env.IS_FORMAT_CHECK_REQUIRED }} (Env) | Default: true | Input: ${{ inputs.format-check-required }}"
+          echo "Apply Patches Required: ${{ env.IS_APPLY_PATCHES_REQUIRED }} (Env) | Default: true | Input: ${{ inputs.apply-patches-required }}"
+          echo "Unit Tests Required: ${{ env.IS_UNIT_TESTS_REQUIRED }} (Env) | Default: true | Input: ${{ inputs.unit-tests-required }}"    
+          
       - name: Install dependencies
         run: |
           echo "Installing dependencies..."
