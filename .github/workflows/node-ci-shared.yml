@@ -37,11 +37,11 @@ permissions:
 env:
   NODE_VERSION: ${{ inputs.node-version || vars.NODE_VERSION }}
   JENKINS_QA_JOB: ${{ vars.JENKINS_QA_JOB || '' }}
-  IS_LINT_REQUIRED: ${{ inputs.lint-required == null && vars.IS_LINT_REQUIRED || inputs.lint-required }}
-  IS_FORMAT_CHECK_REQUIRED: ${{ inputs.format-check-required == null && vars.IS_FORMAT_CHECK_REQUIRED || inputs.format-check-required }}
-  IS_APPLY_PATCHES_REQUIRED: ${{ inputs.apply-patches-required == null && vars.IS_APPLY_PATCHES_REQUIRED || inputs.apply-patches-required }}
-  IS_UNIT_TESTS_REQUIRED: ${{ inputs.unit-tests-required == null && vars.IS_UNIT_TESTS_REQUIRED || inputs.unit-tests-required }}
-  IS_JENKINS_QA_REQUIRED: ${{ inputs.jenkins-qa-required == null && vars.IS_JENKINS_QA_REQUIRED || inputs.jenkins-qa-required }}
+  IS_LINT_REQUIRED: ${{ inputs.lint-required == false && 'false' || inputs.lint-required || vars.IS_LINT_REQUIRED }}
+  IS_FORMAT_CHECK_REQUIRED: ${{ inputs.format-check-required == false && 'false' || inputs.format-check-required || vars.IS_FORMAT_CHECK_REQUIRED }}
+  IS_APPLY_PATCHES_REQUIRED: ${{ inputs.apply-patches-required == false && 'false' || inputs.apply-patches-required || vars.IS_APPLY_PATCHES_REQUIRED }}
+  IS_UNIT_TESTS_REQUIRED: ${{ inputs.unit-tests-required == false && 'false' || inputs.unit-tests-required || vars.IS_UNIT_TESTS_REQUIRED }}
+  IS_JENKINS_QA_REQUIRED: ${{ inputs.jenkins-qa-required == false && 'false' || inputs.jenkins-qa-required || vars.IS_JENKINS_QA_REQUIRED }}
   JENKINS_URL: ${{ vars.JENKINS_URL }}
 
 jobs:
