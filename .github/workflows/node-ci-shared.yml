@@ -207,12 +207,14 @@ jobs:
         run: |
           if [ -n "${{ env.JENKINS_QA_JOB }}" ]; then
             echo "run-jenkins=true" >> $GITHUB_ENV
-            echo "::set-output name=run-jenkins::true"
+            echo "run-jenkins=true" >> $GITHUB_OUTPUT
           else
             echo "run-jenkins=false" >> $GITHUB_ENV
-            echo "::set-output name=run-jenkins::false"
+            echo "run-jenkins=false" >> $GITHUB_OUTPUT
           fi
-
+      - name: Log run-jenkins output
+        run: |
+          echo "run-jenkins: ${{ steps.check.outputs.run-jenkins }}"
   trigger-jenkins-job:
     name: Trigger QA Jenkins Job
     needs: [merge-checks, determine-jenkins]
