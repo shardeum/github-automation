@@ -250,7 +250,7 @@ jobs:
           fi
           
           # Capitalize the repository name
-          REPO_NAME_CAPITALized=$(echo "${REPO_NAME:0:1}" | tr '[:lower:]' '[:upper:]')${REPO_NAME:1}
+          REPO_NAME_CAPITALIZED=$(echo "${REPO_NAME:0:1}" | tr '[:lower:]' '[:upper:]')${REPO_NAME:1}
           echo "Debug: Capitalized Repo Name: $REPO_NAME_CAPITALIZED"
           
           # Export the environment variables
