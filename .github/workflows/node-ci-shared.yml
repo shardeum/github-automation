@@ -87,11 +87,11 @@ jobs:
 
       - name: Echo Input Values and Check Defaults
         run: |
-          echo "Node Version: ${{ env.NODE_VERSION }} (Env) | Default: 18.16.1 | Input: ${{ inputs.node-version }}"
-          echo "Lint Required: ${{ env.IS_LINT_REQUIRED }} (Env) | Default: true | Input: ${{ inputs.lint-required }}"
-          echo "Format Check Required: ${{ env.IS_FORMAT_CHECK_REQUIRED }} (Env) | Default: true | Input: ${{ inputs.format-check-required }}"
-          echo "Apply Patches Required: ${{ env.IS_APPLY_PATCHES_REQUIRED }} (Env) | Default: true | Input: ${{ inputs.apply-patches-required }}"
-          echo "Unit Tests Required: ${{ env.IS_UNIT_TESTS_REQUIRED }} (Env) | Default: true | Input: ${{ inputs.unit-tests-required }}"    
+          echo "Node Version - Input: ${{ inputs.node-version }} | Default: 18.16.1 | Env: ${{ env.NODE_VERSION }}"
+          echo "Lint Required - Input: ${{ inputs.lint-required }} | Default: true | Env: ${{ env.IS_LINT_REQUIRED }}"
+          echo "Format Check Required - Input: ${{ inputs.format-check-required }} | Default: true | Env: ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
+          echo "Apply Patches Required - Input: ${{ inputs.apply-patches-required }} | Default: true | Env: ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
+          echo "Unit Tests Required - Input: ${{ inputs.unit-tests-required }} | Default: true | Env: ${{ env.IS_UNIT_TESTS_REQUIRED }}"
 
       - name: Install dependencies
         run: |
@@ -101,7 +101,6 @@ jobs:
         continue-on-error: false
 
       - name: Lint
-        if: ${{ env.IS_LINT_REQUIRED == 'true' }}
         id: lint
         run: |
           echo "Running Linter..."
@@ -111,7 +110,6 @@ jobs:
 
       - name: Format check
         id: format_check
-        if: ${{ env.IS_FORMAT_CHECK_REQUIRED == 'true' }}
         run: |
           echo "Running format check..."
           npm run format-check
@@ -120,7 +118,6 @@ jobs:
 
       - name: Test apply patches
         id: test_apply_patches
-        if: ${{ env.IS_APPLY_PATCHES_REQUIRED == 'true' }}
         run: |
           set -e
           shopt -s nullglob
@@ -146,7 +143,6 @@ jobs:
 
       - name: Unit Tests
         id: unit_tests
-        if: ${{ env.IS_UNIT_TESTS_REQUIRED == 'true' }}
         run: |
           echo "Running Unit Tests..."
           npm test
@@ -225,37 +221,29 @@ jobs:
         run: |
           echo "Jenkins job Required:           ${{ env.IS_JENKINS_QA_REQUIRED }}"
           echo "Jenkins job Required:           ${{ env.JENKINS_QA_JOB }}"
-          echo "Debug: Event Name: ${{ github.event_name }}"
-          echo "Debug: Run Jenkins: ${{ needs.determine-jenkins.outputs.run-jenkins }}"
       - name: Configure
         id: configure
         run: |
           # Determine the branch name
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             BRANCH_NAME=${{ github.head_ref }}
-            echo "Debug: Branch Name (PR): $BRANCH_NAME"
           else
             BRANCH_NAME=${{ github.ref_name }}
-            echo "Debug: Branch Name (Other): $BRANCH_NAME"
           fi
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
           
           # Determine the repository name, prioritize the secret if it exists
           if [ -n "${{ env.REPO_NAME }}" ]; then
             REPO_NAME=${{ env.REPO_NAME }}
-            echo "Debug: Repo Name from Env: $REPO_NAME"
           else
             REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
-            echo "Debug: Repo Name from GitHub Repository: $REPO_NAME"
           fi
           
           # Capitalize the repository name
           REPO_NAME_CAPITALIZED=$(echo "${REPO_NAME:0:1}" | tr '[:lower:]' '[:upper:]')${REPO_NAME:1}
-          echo "Debug: Capitalized Repo Name: $REPO_NAME_CAPITALIZED"
           
           # Export the environment variables
-          echo "REPO_NAME=$REPO_NAME_CAPITALIZED" >> $GITHUB_ENV
-          echo "Debug: Exported Repo Name: $REPO_NAME_CAPITALIZED"
+          echo "REPO_NAME=${REPO_NAME_CAPITALIZED}" >> $GITHUB_ENV
 
       - name: Trigger Jenkins QA Job
         id: trigger_jenkins_qa_job
@@ -264,10 +252,6 @@ jobs:
           REPO_NAME: ${{ env.REPO_NAME }}
           JENKINS_URL: ${{ env.JENKINS_URL }}
         run: |
-          echo "Debug: Jenkins URL: $JENKINS_URL"
-          echo "Debug: Jenkins QA Job: ${{ env.JENKINS_QA_JOB }}"
-          echo "Debug: Branch Name: $BRANCH_NAME"
-          echo "Debug: Repository Name: $REPO_NAME"
           curl -f -X POST "${JENKINS_URL}/job/${{ env.JENKINS_QA_JOB }}/buildWithParameters?SPECIFY_${REPO_NAME}_BRANCH=true&${REPO_NAME}_BRANCH=${BRANCH_NAME}" \
             --user "${{ secrets.JENKINS_API_CREDS }}"
         continue-on-error: true
