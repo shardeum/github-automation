@@ -37,11 +37,11 @@ permissions:
 env:
   NODE_VERSION: ${{ inputs.node-version || vars.NODE_VERSION }}
   JENKINS_QA_JOB: ${{ vars.JENKINS_QA_JOB || '' }}
-  IS_LINT_REQUIRED: ${{ inputs.lint-required || vars.IS_LINT_REQUIRED }}
-  IS_FORMAT_CHECK_REQUIRED: ${{ inputs.format-check-required || vars.IS_FORMAT_CHECK_REQUIRED }}
-  IS_APPLY_PATCHES_REQUIRED: ${{ inputs.apply-patches-required || vars.IS_APPLY_PATCHES_REQUIRED }}
-  IS_UNIT_TESTS_REQUIRED: ${{ inputs.unit-tests-required || vars.IS_UNIT_TESTS_REQUIRED }}
-  IS_JENKINS_QA_REQUIRED: ${{ inputs.jenkins-qa-required || vars.IS_JENKINS_QA_REQUIRED }}
+  IS_LINT_REQUIRED: ${{ inputs.lint-required == false && 'false' || inputs.lint-required || vars.IS_LINT_REQUIRED }}
+  IS_FORMAT_CHECK_REQUIRED: ${{ inputs.format-check-required == false && 'false' || inputs.format-check-required || vars.IS_FORMAT_CHECK_REQUIRED }}
+  IS_APPLY_PATCHES_REQUIRED: ${{ inputs.apply-patches-required == false && 'false' || inputs.apply-patches-required || vars.IS_APPLY_PATCHES_REQUIRED }}
+  IS_UNIT_TESTS_REQUIRED: ${{ inputs.unit-tests-required == false && 'false' || inputs.unit-tests-required || vars.IS_UNIT_TESTS_REQUIRED }}
+  IS_JENKINS_QA_REQUIRED: ${{ inputs.jenkins-qa-required == false && 'false' || inputs.jenkins-qa-required || vars.IS_JENKINS_QA_REQUIRED }}
   JENKINS_URL: ${{ vars.JENKINS_URL }}
 
 jobs:
@@ -84,13 +84,15 @@ jobs:
         uses: actions/setup-node@v4.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
+
       - name: Echo Input Values and Check Defaults
         run: |
-          echo "Node Version:           ${{ env.NODE_VERSION }}"
-          echo "Lint Required:          ${{ env.IS_LINT_REQUIRED }}"
-          echo "Format Check Required:  ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
-          echo "Apply Patches Required: ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
-          echo "Unit Tests Required:    ${{ env.IS_UNIT_TESTS_REQUIRED }}"
+          echo "Node Version - Input: ${{ inputs.node-version }} | Default: 18.16.1 | Env: ${{ env.NODE_VERSION }}"
+          echo "Lint Required - Input: ${{ inputs.lint-required }} | Default: true | Env: ${{ env.IS_LINT_REQUIRED }}"
+          echo "Format Check Required - Input: ${{ inputs.format-check-required }} | Default: true | Env: ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
+          echo "Apply Patches Required - Input: ${{ inputs.apply-patches-required }} | Default: true | Env: ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
+          echo "Unit Tests Required - Input: ${{ inputs.unit-tests-required }} | Default: true | Env: ${{ env.IS_UNIT_TESTS_REQUIRED }}"
+
       - name: Install dependencies
         run: |
           echo "Installing dependencies..."
@@ -201,12 +203,14 @@ jobs:
         run: |
           if [ -n "${{ env.JENKINS_QA_JOB }}" ]; then
             echo "run-jenkins=true" >> $GITHUB_ENV
-            echo "::set-output name=run-jenkins::true"
+            echo "run-jenkins=true" >> $GITHUB_OUTPUT
           else
             echo "run-jenkins=false" >> $GITHUB_ENV
-            echo "::set-output name=run-jenkins::false"
+            echo "run-jenkins=false" >> $GITHUB_OUTPUT
           fi
-
+      - name: Log run-jenkins output
+        run: |
+          echo "run-jenkins: ${{ steps.check.outputs.run-jenkins }}"
   trigger-jenkins-job:
     name: Trigger QA Jenkins Job
     needs: [merge-checks, determine-jenkins]
@@ -222,10 +226,11 @@ jobs:
         run: |
           # Determine the branch name
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "BRANCH_NAME=${{ github.head_ref }}" >> $GITHUB_ENV
+            BRANCH_NAME=${{ github.head_ref }}
           else
-            echo "BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+            BRANCH_NAME=${{ github.ref_name }}
           fi
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
           
           # Determine the repository name, prioritize the secret if it exists
           if [ -n "${{ env.REPO_NAME }}" ]; then
@@ -244,7 +249,7 @@ jobs:
         id: trigger_jenkins_qa_job
         env:
           BRANCH_NAME: ${{ env.BRANCH_NAME }}
-          REPO_NAME: ${{ vars.REPO_NAME }}
+          REPO_NAME: ${{ env.REPO_NAME }}
           JENKINS_URL: ${{ env.JENKINS_URL }}
         run: |
           curl -f -X POST "${JENKINS_URL}/job/${{ env.JENKINS_QA_JOB }}/buildWithParameters?SPECIFY_${REPO_NAME}_BRANCH=true&${REPO_NAME}_BRANCH=${BRANCH_NAME}" \
