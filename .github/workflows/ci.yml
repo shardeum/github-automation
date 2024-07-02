@@ -24,17 +24,6 @@ permissions:
   issues: write
   pull-requests: write
 
-# These are all configured as org vars and may be overridden as repo vars, check with sys and automation to change
-env:
-  NODE_VERSION: ${{ vars.node-version }}
-  JENKINS_URL: ${{ vars.jenkins-url }}
-  JENKINS_QA_JOB: ${{ vars.jenkins-qa-job || '' }}
-  IS_LINT_REQUIRED: ${{ vars.lint-required }}
-  IS_FORMAT_CHECK_REQUIRED: ${{ vars.format-check-required }}
-  IS_APPLY_PATCHES_REQUIRED: ${{ vars.apply-patches-required }}
-  IS_UNIT_TESTS_REQUIRED: ${{ vars.unit-tests-required }}
-  IS_JENKINS_QA_REQUIRED: ${{ vars.jenkins-qa-required }}
-
 jobs:
   echo-inputs:
     name: Repo Workflow Debugging
@@ -43,38 +32,39 @@ jobs:
       - name: Check Repo Vars
         run: |
           echo "*** Start - Check inputs in repo workflow ***"
-          echo "Node Version - Var: ${{ NODE_VERSION }} | Env: ${{ env.NODE_VERSION }}"
-          echo "Jenkins URL - Var: ${{ vars.JENKINS_URL }} | Env: ${{ env.JENKINS_URL }}"
-          echo "Jenkins QA Job - Var: ${{ vars.JENKINS_QA_JOB }} | Env: ${{ env.JENKINS_QA_JOB }}"
-          echo "Lint Required - Var: true | Env: ${{ env.IS_LINT_REQUIRED }}"
-          echo "Format Check Required - Var: true | Env: ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
-          echo "Apply Patches Required - Var: true | Env: ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
-          echo "Unit Tests Required - Var: true | Env: ${{ env.IS_UNIT_TESTS_REQUIRED }}"
+          echo "Node Version: ${{ vars.NODE_VERSION }}"
+          echo "Jenkins URL: ${{ vars.JENKINS_URL }}"
+          echo "Jenkins QA Job: ${{ vars.JENKINS_QA_JOB || ' '}}"
+          echo "Lint Required: ${{ vars.IS_LINT_REQUIRED }}"
+          echo "Format Check Required: ${{ vars.IS_FORMAT_CHECK_REQUIRED }}"
+          echo "Apply Patches Required: ${{ vars.IS_APPLY_PATCHES_REQUIRED }}"
+          echo "Unit Tests Required: ${{ vars.IS_UNIT_TESTS_REQUIRED }}"
+          echo "Jenkins QA Required: ${{ vars.IS_JENKINS_QA_REQUIRED }}"
           echo "*** End - Check inputs in repo workflow ***"
   ci-dev:
     if: ${{ github.event.inputs.workflowBranch == 'dev' }}
     uses: shardeum/github-automation/.github/workflows/node-ci-shared.yml@dev
     with:
-      node-version: ${{ env.NODE_VERSION }}
-      jenkins-url: ${{ env.JENKINS_URL }}
-      jenkins-qa-job: ${{ env.JENKINS_QA_JOB }}
-      lint-required: ${{ env.IS_LINT_REQUIRED }}
-      format-check-required: ${{ env.IS_FORMAT_CHECK_REQUIRED }}
-      apply-patches-required: ${{ env.IS_APPLY_PATCHES_REQUIRED }}
-      unit-tests-required: ${{ env.IS_UNIT_TESTS_REQUIRED }}
-      jenkins-qa-required: ${{ env.IS_JENKINS_QA_REQUIRED }}
+      node-version: ${{ vars.NODE_VERSION }}
+      jenkins-url: ${{ vars.JENKINS_URL }}
+      jenkins-qa-job: ${{ vars.JENKINS_QA_JOB || ' ' }}
+      lint-required: ${{ vars.IS_LINT_REQUIRED }}
+      format-check-required: ${{ vars.IS_FORMAT_CHECK_REQUIRED }}
+      apply-patches-required: ${{ vars.IS_APPLY_PATCHES_REQUIRED }}
+      unit-tests-required: ${{ vars.IS_UNIT_TESTS_REQUIRED }}
+      jenkins-qa-required: ${{ vars.IS_JENKINS_QA_REQUIRED }}
     secrets: inherit
 
   ci-main:
     if: ${{ github.event.inputs.workflowBranch == 'main' || !github.event.inputs.workflowBranch }}
     uses: shardeum/github-automation/.github/workflows/node-ci-shared.yml@main
     with:
-      node-version: ${{ env.NODE_VERSION }}
-      jenkins-url: ${{ env.JENKINS_URL }}
-      jenkins-qa-job: ${{ env.JENKINS_QA_JOB }}
-      lint-required: ${{ env.IS_LINT_REQUIRED }}
-      format-check-required: ${{ env.IS_FORMAT_CHECK_REQUIRED }}
-      apply-patches-required: ${{ env.IS_APPLY_PATCHES_REQUIRED }}
-      unit-tests-required: ${{ env.IS_UNIT_TESTS_REQUIRED }}
-      jenkins-qa-required: ${{ env.IS_JENKINS_QA_REQUIRED }}
+      node-version: ${{ vars.NODE_VERSION }}
+      jenkins-url: ${{ vars.JENKINS_URL }}
+      jenkins-qa-job: ${{ vars.JENKINS_QA_JOB || ' '}}
+      lint-required: ${{ vars.IS_LINT_REQUIRED }}
+      format-check-required: ${{ vars.IS_FORMAT_CHECK_REQUIRED }}
+      apply-patches-required: ${{ vars.IS_APPLY_PATCHES_REQUIRED }}
+      unit-tests-required: ${{ vars.IS_UNIT_TESTS_REQUIRED }}
+      jenkins-qa-required: ${{ vars.IS_JENKINS_QA_REQUIRED }}
     secrets: inherit
