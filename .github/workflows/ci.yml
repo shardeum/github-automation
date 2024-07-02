@@ -24,17 +24,6 @@ permissions:
   issues: write
   pull-requests: write
 
-# These are all configured as org vars and may be overridden as repo vars, check with sys and automation to change
-env:
-  NODE_VERSION: ${{ vars.NODE_VERSION }}
-  JENKINS_URL: ${{ vars.JENKINS_URL }}
-  JENKINS_QA_JOB: ${{ vars.JENKINS_QA_JOB || '' }}
-  IS_LINT_REQUIRED: ${{ vars.IS_LING_REQUIRED }}
-  IS_FORMAT_CHECK_REQUIRED: ${{ vars.IS_FORMAT_CHECK_REQUIRED }}
-  IS_APPLY_PATCHES_REQUIRED: ${{ vars.IS_APPLY_PATCHES_REQUIRED }}
-  IS_UNIT_TESTS_REQUIRED: ${{ vars.IS_UNIT_TESTS_REQUIRED }}
-  IS_JENKINS_QA_REQUIRED: ${{ vars.IS_JENKINS_QA_REQUIRED }}
-
 jobs:
   echo-inputs:
     name: Repo Workflow Debugging
@@ -43,27 +32,27 @@ jobs:
       - name: Check Repo Vars
         run: |
           echo "*** Start - Check inputs in repo workflow ***"
-          echo "Node Version - Var: ${{ vars.NODE_VERSION }} | Env: ${{ env.NODE_VERSION }}"
-          echo "Jenkins URL - Var: ${{ vars.JENKINS_URL }} | Env: ${{ env.JENKINS_URL }}"
-          echo "Jenkins QA Job - Var: ${{ vars.JENKINS_QA_JOB }} | Env: ${{ env.JENKINS_QA_JOB }}"
-          echo "Lint Required - Var: ${{ vars.IS_LINT_REQUIRED }} | Env: ${{ env.IS_LINT_REQUIRED }}"
-          echo "Format Check Required - Var: ${{ vars.IS_FORMAT_CHECK_REQUIRED }} | Env: ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
-          echo "Apply Patches Required - Var: ${{ vars.IS_APPLY_PATCHES_REQUIRED }} | Env: ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
-          echo "Unit Tests Required - Var: ${{ vars.IS_UNIT_TESTS_REQUIRED }} | Env: ${{ env.IS_UNIT_TESTS_REQUIRED }}"
-          echo "Jenkins QA Required - Var: ${{ vars.IS_JENKINS_QA_REQUIRED }} | Env: ${{ env.IS_UNIT_TESTS_REQUIRED }}"
+          echo "Node Version: ${{ vars.NODE_VERSION }}"
+          echo "Jenkins URL: ${{ vars.JENKINS_URL }}"
+          echo "Jenkins QA Job: ${{ vars.JENKINS_QA_JOB || ' '}}"
+          echo "Lint Required: ${{ vars.IS_LINT_REQUIRED }}"
+          echo "Format Check Required: ${{ vars.IS_FORMAT_CHECK_REQUIRED }}"
+          echo "Apply Patches Required: ${{ vars.IS_APPLY_PATCHES_REQUIRED }}"
+          echo "Unit Tests Required: ${{ vars.IS_UNIT_TESTS_REQUIRED }}"
+          echo "Jenkins QA Required: ${{ vars.IS_JENKINS_QA_REQUIRED }}"
           echo "*** End - Check inputs in repo workflow ***"
   ci-dev:
     if: ${{ github.event.inputs.workflowBranch == 'dev' }}
     uses: shardeum/github-automation/.github/workflows/node-ci-shared.yml@dev
     with:
-      node-version: ${{ env.NODE_VERSION }}
-      jenkins-url: ${{ env.JENKINS_URL }}
-      jenkins-qa-job: ${{ env.JENKINS_QA_JOB }}
-      lint-required: ${{ env.IS_LINT_REQUIRED }}
-      format-check-required: ${{ env.IS_FORMAT_CHECK_REQUIRED }}
-      apply-patches-required: ${{ env.IS_APPLY_PATCHES_REQUIRED }}
-      unit-tests-required: ${{ env.IS_UNIT_TESTS_REQUIRED }}
-      jenkins-qa-required: ${{ env.IS_JENKINS_QA_REQUIRED }}
+      node-version: ${{ vars.NODE_VERSION }}
+      jenkins-url: ${{ vars.JENKINS_URL }}
+      jenkins-qa-job: ${{ vars.JENKINS_QA_JOB || ' ' }}
+      lint-required: ${{ vars.IS_LINT_REQUIRED }}
+      format-check-required: ${{ vars.IS_FORMAT_CHECK_REQUIRED }}
+      apply-patches-required: ${{ vars.IS_APPLY_PATCHES_REQUIRED }}
+      unit-tests-required: ${{ vars.IS_UNIT_TESTS_REQUIRED }}
+      jenkins-qa-required: ${{ vars.IS_JENKINS_QA_REQUIRED }}
     secrets: inherit
 
   ci-main:
@@ -72,7 +61,7 @@ jobs:
     with:
       node-version: ${{ env.NODE_VERSION }}
       jenkins-url: ${{ env.JENKINS_URL }}
-      jenkins-qa-job: ${{ env.JENKINS_QA_JOB }}
+      jenkins-qa-job: ${{ env.JENKINS_QA_JOB || ' '}}
       lint-required: ${{ env.IS_LINT_REQUIRED }}
       format-check-required: ${{ env.IS_FORMAT_CHECK_REQUIRED }}
       apply-patches-required: ${{ env.IS_APPLY_PATCHES_REQUIRED }}
