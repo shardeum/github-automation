@@ -43,7 +43,7 @@ jobs:
       - name: Check Repo Vars
         run: |
           echo "*** Start - Check inputs in repo workflow ***"
-          echo "Node Version - Var: ${{ NODE_VERSION }} | Env: ${{ env.NODE_VERSION }}"
+          echo "Node Version - Var: ${{ vars.NODE_VERSION }} | Env: ${{ env.NODE_VERSION }}"
           echo "Jenkins URL - Var: ${{ vars.JENKINS_URL }} | Env: ${{ env.JENKINS_URL }}"
           echo "Jenkins QA Job - Var: ${{ vars.JENKINS_QA_JOB }} | Env: ${{ env.JENKINS_QA_JOB }}"
           echo "Lint Required - Var: ${{ vars.IS_LINT_REQUIRED }} | Env: ${{ env.IS_LINT_REQUIRED }}"
