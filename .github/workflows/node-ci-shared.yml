@@ -88,7 +88,7 @@ jobs:
       - name: Echo Input Values and Check Defaults
         run: |
           echo "*** Start - Check inputs in shared workflow ***"        
-          echo "Node Version - Var: ${{ NODE_VERSION }} | Input: ${{ inputs.node-version }} | Env: ${{ env.NODE_VERSION }}"
+          echo "Node Version - Var: ${{ vars.NODE_VERSION }} | Input: ${{ inputs.node-version }} | Env: ${{ env.NODE_VERSION }}"
           echo "Jenkins URL - Var: ${{ vars.JENKINS_URL }} | Input: ${{ inputs.jenkins-url }} | Env: ${{ env.JENKINS_URL }}"
           echo "Jenkins QA Job - Var: ${{ vars.JENKINS_QA_JOB }} | Input: ${{ inputs.jenkins-qa-job }} | Env: ${{ env.JENKINS_QA_JOB }}"
           echo "Lint Required - Var: ${{ vars.IS_LINT_REQUIRED }} | Input: ${{ inputs.lint-required }} | Env: ${{ env.IS_LINT_REQUIRED }}"
