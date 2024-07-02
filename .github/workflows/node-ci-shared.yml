@@ -257,6 +257,8 @@ jobs:
           REPO_NAME: ${{ env.REPO_NAME }}
           JENKINS_URL: ${{ env.JENKINS_URL }}
         run: |
+          echo "Curl: "${JENKINS_URL}/job/${{ env.JENKINS_QA_JOB }}/buildWithParameters?SPECIFY_${REPO_NAME}_BRANCH=true&${REPO_NAME}_BRANCH=${BRANCH_NAME}" \
+            --user "${{ secrets.JENKINS_API_CREDS }}"
           curl -f -X POST "${JENKINS_URL}/job/${{ env.JENKINS_QA_JOB }}/buildWithParameters?SPECIFY_${REPO_NAME}_BRANCH=true&${REPO_NAME}_BRANCH=${BRANCH_NAME}" \
             --user "${{ secrets.JENKINS_API_CREDS }}"
         continue-on-error: true
