@@ -59,12 +59,12 @@ jobs:
     if: ${{ github.event.inputs.workflowBranch == 'main' || !github.event.inputs.workflowBranch }}
     uses: shardeum/github-automation/.github/workflows/node-ci-shared.yml@main
     with:
-      node-version: ${{ env.NODE_VERSION }}
-      jenkins-url: ${{ env.JENKINS_URL }}
-      jenkins-qa-job: ${{ env.JENKINS_QA_JOB || ' '}}
-      lint-required: ${{ env.IS_LINT_REQUIRED }}
-      format-check-required: ${{ env.IS_FORMAT_CHECK_REQUIRED }}
-      apply-patches-required: ${{ env.IS_APPLY_PATCHES_REQUIRED }}
-      unit-tests-required: ${{ env.IS_UNIT_TESTS_REQUIRED }}
-      jenkins-qa-required: ${{ env.IS_JENKINS_QA_REQUIRED }}
+      node-version: ${{ vars.NODE_VERSION }}
+      jenkins-url: ${{ vars.JENKINS_URL }}
+      jenkins-qa-job: ${{ vars.JENKINS_QA_JOB || ' '}}
+      lint-required: ${{ vars.IS_LINT_REQUIRED }}
+      format-check-required: ${{ vars.IS_FORMAT_CHECK_REQUIRED }}
+      apply-patches-required: ${{ vars.IS_APPLY_PATCHES_REQUIRED }}
+      unit-tests-required: ${{ vars.IS_UNIT_TESTS_REQUIRED }}
+      jenkins-qa-required: ${{ vars.IS_JENKINS_QA_REQUIRED }}
     secrets: inherit
