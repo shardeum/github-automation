@@ -1,48 +1,48 @@
 name: Shardeum Reusable CI Workflow for Node projects
 
+# All variables must be set at the repo workflow call and provided to this shared/reusable workflow
 on:
   issue_comment:
   workflow_call:
     inputs:
+      jenkins-url:
+        required: true
+        type: string
+      jenkins-qa-job:
+        required: true
+        type: string
       node-version:
-        required: false
-        default: "18.16.1"
+        required: true
         type: string
       lint-required:
-        required: false
-        default: true
+        required: true
         type: boolean
       format-check-required:
-        required: false
-        default: true
+        required: true
         type: boolean
       apply-patches-required:
-        required: false
-        default: true
+        required: true
         type: boolean
       unit-tests-required:
-        required: false
-        default: true
+        required: true
         type: boolean
       jenkins-qa-required:
-        required: false
-        default: true
+        required: true
         type: boolean
 
 permissions:
   issues: write
   pull-requests: write
 
-# Repository variables must be passed in at the workflow level
 env:
-  NODE_VERSION: ${{ inputs.node-version || vars.NODE_VERSION }}
-  JENKINS_QA_JOB: ${{ vars.JENKINS_QA_JOB || '' }}
-  IS_LINT_REQUIRED: ${{ inputs.lint-required == false && 'false' || inputs.lint-required || vars.IS_LINT_REQUIRED }}
-  IS_FORMAT_CHECK_REQUIRED: ${{ inputs.format-check-required == false && 'false' || inputs.format-check-required || vars.IS_FORMAT_CHECK_REQUIRED }}
-  IS_APPLY_PATCHES_REQUIRED: ${{ inputs.apply-patches-required == false && 'false' || inputs.apply-patches-required || vars.IS_APPLY_PATCHES_REQUIRED }}
-  IS_UNIT_TESTS_REQUIRED: ${{ inputs.unit-tests-required == false && 'false' || inputs.unit-tests-required || vars.IS_UNIT_TESTS_REQUIRED }}
-  IS_JENKINS_QA_REQUIRED: ${{ inputs.jenkins-qa-required == false && 'false' || inputs.jenkins-qa-required || vars.IS_JENKINS_QA_REQUIRED }}
-  JENKINS_URL: ${{ vars.JENKINS_URL }}
+  NODE_VERSION: ${{ inputs.node-version }}
+  JENKINS_URL: ${{ inputs.jenkins-url }}
+  JENKINS_QA_JOB: ${{ inputs.jenkins-qa-job }}
+  IS_LINT_REQUIRED: ${{ inputs.lint-required }}
+  IS_FORMAT_CHECK_REQUIRED: ${{ inputs.format-check-required }}
+  IS_APPLY_PATCHES_REQUIRED: ${{ inputs.apply-patches-required }}
+  IS_UNIT_TESTS_REQUIRED: ${{ inputs.unit-tests-required }}
+  IS_JENKINS_QA_REQUIRED: ${{ inputs.jenkins-qa-required }}
 
 jobs:
   debug-info:
@@ -87,11 +87,15 @@ jobs:
 
       - name: Echo Input Values and Check Defaults
         run: |
-          echo "Node Version - Input: ${{ inputs.node-version }} | Default: 18.16.1 | Env: ${{ env.NODE_VERSION }}"
-          echo "Lint Required - Input: ${{ inputs.lint-required }} | Default: true | Env: ${{ env.IS_LINT_REQUIRED }}"
-          echo "Format Check Required - Input: ${{ inputs.format-check-required }} | Default: true | Env: ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
-          echo "Apply Patches Required - Input: ${{ inputs.apply-patches-required }} | Default: true | Env: ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
-          echo "Unit Tests Required - Input: ${{ inputs.unit-tests-required }} | Default: true | Env: ${{ env.IS_UNIT_TESTS_REQUIRED }}"
+          echo "*** Start - Check inputs in shared workflow ***"        
+          echo "Node Version - Var: ${{ NODE_VERSION }} | Input: ${{ inputs.node-version }} | Env: ${{ env.NODE_VERSION }}"
+          echo "Jenkins URL - Var: ${{ vars.JENKINS_URL }} | Input: ${{ inputs.jenkins-url }} | Env: ${{ env.JENKINS_URL }}"
+          echo "Jenkins QA Job - Var: ${{ vars.JENKINS_QA_JOB }} | Input: ${{ inputs.jenkins-qa-job }} | Env: ${{ env.JENKINS_QA_JOB }}"
+          echo "Lint Required - Var: true | Input: ${{ inputs.lint-required }} | Env: ${{ env.IS_LINT_REQUIRED }}"
+          echo "Format Check Required - Var: true | Input: ${{ inputs.format-check-required }} | Env: ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
+          echo "Apply Patches Required - Var: true | Input: ${{ inputs.apply-patches-required }} | Env: ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
+          echo "Unit Tests Required - Var: true | Input: ${{ inputs.unit-tests-required }} | Env: ${{ env.IS_UNIT_TESTS_REQUIRED }}"
+          echo "*** End - Check inputs in shared workflow ***"        
 
       - name: Install dependencies
         run: |
