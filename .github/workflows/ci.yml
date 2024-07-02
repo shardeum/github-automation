@@ -26,14 +26,14 @@ permissions:
 
 # These are all configured as org vars and may be overridden as repo vars, check with sys and automation to change
 env:
-  NODE_VERSION: ${{ vars.node-version }}
-  JENKINS_URL: ${{ vars.jenkins-url }}
-  JENKINS_QA_JOB: ${{ vars.jenkins-qa-job || '' }}
-  IS_LINT_REQUIRED: ${{ vars.lint-required }}
-  IS_FORMAT_CHECK_REQUIRED: ${{ vars.format-check-required }}
-  IS_APPLY_PATCHES_REQUIRED: ${{ vars.apply-patches-required }}
-  IS_UNIT_TESTS_REQUIRED: ${{ vars.unit-tests-required }}
-  IS_JENKINS_QA_REQUIRED: ${{ vars.jenkins-qa-required }}
+  NODE_VERSION: ${{ vars.NODE_VERSION }}
+  JENKINS_URL: ${{ vars.JENKINS_URL }}
+  JENKINS_QA_JOB: ${{ vars.JENKINS_QA_JOB || '' }}
+  IS_LINT_REQUIRED: ${{ vars.IS_LING_REQUIRED }}
+  IS_FORMAT_CHECK_REQUIRED: ${{ vars.IS_FORMAT_CHECK_REQUIRED }}
+  IS_APPLY_PATCHES_REQUIRED: ${{ vars.IS_APPLY_PATCHES_REQUIRED }}
+  IS_UNIT_TESTS_REQUIRED: ${{ vars.IS_UNIT_TESTS_REQUIRED }}
+  IS_JENKINS_QA_REQUIRED: ${{ vars.IS_JENKINS_QA_REQUIRED }}
 
 jobs:
   echo-inputs:
@@ -46,10 +46,11 @@ jobs:
           echo "Node Version - Var: ${{ NODE_VERSION }} | Env: ${{ env.NODE_VERSION }}"
           echo "Jenkins URL - Var: ${{ vars.JENKINS_URL }} | Env: ${{ env.JENKINS_URL }}"
           echo "Jenkins QA Job - Var: ${{ vars.JENKINS_QA_JOB }} | Env: ${{ env.JENKINS_QA_JOB }}"
-          echo "Lint Required - Var: true | Env: ${{ env.IS_LINT_REQUIRED }}"
-          echo "Format Check Required - Var: true | Env: ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
-          echo "Apply Patches Required - Var: true | Env: ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
-          echo "Unit Tests Required - Var: true | Env: ${{ env.IS_UNIT_TESTS_REQUIRED }}"
+          echo "Lint Required - Var: ${{ vars.IS_LINT_REQUIRED }} | Env: ${{ env.IS_LINT_REQUIRED }}"
+          echo "Format Check Required - Var: ${{ vars.IS_FORMAT_CHECK_REQUIRED }} | Env: ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
+          echo "Apply Patches Required - Var: ${{ vars.IS_APPLY_PATCHES_REQUIRED }} | Env: ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
+          echo "Unit Tests Required - Var: ${{ vars.IS_UNIT_TESTS_REQUIRED }} | Env: ${{ env.IS_UNIT_TESTS_REQUIRED }}"
+          echo "Jenkins QA Required - Var: ${{ vars.IS_JENKINS_QA_REQUIRED }} | Env: ${{ env.IS_UNIT_TESTS_REQUIRED }}"
           echo "*** End - Check inputs in repo workflow ***"
   ci-dev:
     if: ${{ github.event.inputs.workflowBranch == 'dev' }}

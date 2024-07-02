@@ -91,10 +91,11 @@ jobs:
           echo "Node Version - Var: ${{ NODE_VERSION }} | Input: ${{ inputs.node-version }} | Env: ${{ env.NODE_VERSION }}"
           echo "Jenkins URL - Var: ${{ vars.JENKINS_URL }} | Input: ${{ inputs.jenkins-url }} | Env: ${{ env.JENKINS_URL }}"
           echo "Jenkins QA Job - Var: ${{ vars.JENKINS_QA_JOB }} | Input: ${{ inputs.jenkins-qa-job }} | Env: ${{ env.JENKINS_QA_JOB }}"
-          echo "Lint Required - Var: true | Input: ${{ inputs.lint-required }} | Env: ${{ env.IS_LINT_REQUIRED }}"
-          echo "Format Check Required - Var: true | Input: ${{ inputs.format-check-required }} | Env: ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
-          echo "Apply Patches Required - Var: true | Input: ${{ inputs.apply-patches-required }} | Env: ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
-          echo "Unit Tests Required - Var: true | Input: ${{ inputs.unit-tests-required }} | Env: ${{ env.IS_UNIT_TESTS_REQUIRED }}"
+          echo "Lint Required - Var: ${{ vars.IS_LINT_REQUIRED }} | Input: ${{ inputs.lint-required }} | Env: ${{ env.IS_LINT_REQUIRED }}"
+          echo "Format Check Required - Var: ${{ vars.IS_FORMAT_CHECK_REQUIRED }} | Input: ${{ inputs.format-check-required }} | Env: ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
+          echo "Apply Patches Required - Var: ${{ vars.IS_APPLY_PATCHES_REQUIRED }} | Input: ${{ inputs.apply-patches-required }} | Env: ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
+          echo "Unit Tests Required - Var: ${{ vars.IS_UNIT_TESTS_REQUIRED }} | Input: ${{ inputs.unit-tests-required }} | Env: ${{ env.IS_UNIT_TESTS_REQUIRED }}"
+          echo "Jenkins QA Required - Var: ${{ vars.IS_JENKINS_QA_REQUIRED }} | Input: ${{ inputs.jenkins-qa-required }} | Env: ${{ env.IS_JENKINS_QA_REQUIRED }}"
           echo "*** End - Check inputs in shared workflow ***"        
 
       - name: Install dependencies
