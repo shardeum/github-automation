@@ -1,0 +1,133 @@
+#name: Shardeum Reusable Workflow to trigger an external QA Pipeline
+### TODO - This is a copy of the WIP steps to trigger a Jenkins QA job. We pulled this code from the primary
+###        CI workflow to simplify it and to work on correcting some issues in the QA Job trigger. This workflow
+###        currently DOES NOT WORK. It can only be manually triggered and that will end in sadness. I'm committing
+###        this as is because we'll be working on it again in the future and I don't want to lose it in a stale
+###        branch. I'm going to copy everything out to ensure Github doesn't try to run it and cause a weird error.
+###        See Linear issues SYS-136 and other Systems and Automation Team linear issues for more info.
+### TODO - We should probably make this stuff a little more generic just in case we ever decide to use something other than Jenkins
+###        I started doing that but haven't finished. There are a few org/repo vars that'll need to be removed and recreated
+### All variables must be set at the repo workflow call and provided to this shared/reusable workflow
+#on:
+#  workflow_call:
+#    inputs:
+#      base-url:
+#        required: true
+#        type: string
+#      qa-job:
+#        required: true
+#        type: string
+#      qa-job-required:
+#        required: true
+#        type: boolean
+### TODO - not sure if we'll need these permissions or not
+#permissions:
+#  issues: write
+#  pull-requests: write
+#
+#env:
+#  JENKINS_URL: ${{ inputs.jenkins-url }}
+#  JENKINS_QA_JOB: ${{ inputs.jenkins-qa-job }}
+#  IS_JENKINS_QA_REQUIRED: ${{ inputs.jenkins-qa-required }}
+#
+#jobs:
+#  debug-info:
+#    runs-on: ubuntu-latest
+#    name: Display useful debugging information
+#    steps:
+#      - name: Display Event details
+#        run: |
+#          echo "Event Name:           ${{ github.event_name }}"
+#          echo "Event Action:         ${{ github.event.action }}"
+#          echo "Event Sender Type:    ${{ github.event.sender.type }}"
+#
+#      - name: Echo Input Values and Check Defaults
+#        run: |
+#          echo "*** Start - Check inputs in shared workflow ***"
+#          echo "Jenkins URL - Var: ${{ vars.JENKINS_URL }} | Input: ${{ inputs.jenkins-url }} | Env: ${{ env.JENKINS_URL }}"
+#          echo "Jenkins QA Job - Var: ${{ vars.JENKINS_QA_JOB }} | Input: ${{ inputs.jenkins-qa-job }} | Env: ${{ env.JENKINS_QA_JOB }}"
+#          echo "Jenkins QA Required - Var: ${{ vars.IS_JENKINS_QA_REQUIRED }} | Input: ${{ inputs.jenkins-qa-required }} | Env: ${{ env.IS_JENKINS_QA_REQUIRED }}"
+#          echo "*** End - Check inputs in shared workflow ***"
+#
+###   This job is needed to get around the fact that GitHub doesn't let you reference an env in the 'if' for the job
+#  is-qa-available:
+#    name: Determine Jenkins Job Requirement
+#    runs-on: ubuntu-latest
+#    outputs:
+#      run-jenkins: ${{ steps.check.outputs.run-jenkins }}
+#    steps:
+#      - name: Check if Jenkins QA job is required
+#        id: check
+#        run: |
+#          if [ -n "${{ env.JENKINS_QA_JOB }}" ]; then
+#            echo "run-jenkins=true" >> $GITHUB_ENV
+#            echo "run-jenkins=true" >> $GITHUB_OUTPUT
+#          else
+#            echo "run-jenkins=false" >> $GITHUB_ENV
+#            echo "run-jenkins=false" >> $GITHUB_OUTPUT
+#          fi
+#      - name: Log run-jenkins output
+#        run: |
+#          echo "run-jenkins: ${{ steps.check.outputs.run-jenkins }}"
+#  trigger-qa-job:
+#    name: Trigger QA Job
+#    needs: [merge-checks, determine-jenkins]
+#    runs-on: ubuntu-latest
+#    if: ${{ github.event_name != 'issue_comment' && needs.determine-jenkins.outputs.run-jenkins == 'true' }}
+#    steps:
+#      - name: Echo Input Values and Check Defaults
+#        run: |
+#          echo "Jenkins job Required:           ${{ env.IS_JENKINS_QA_REQUIRED }}"
+#          echo "Jenkins job Required:           ${{ env.JENKINS_QA_JOB }}"
+#      - name: Configure
+#        id: configure
+#        run: |
+###           Determine the branch name
+#          if [ "${{ github.event_name }}" == "pull_request" ]; then
+#            BRANCH_NAME=${{ github.head_ref }}
+#          else
+#            BRANCH_NAME=${{ github.ref_name }}
+#          fi
+#          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+#
+###           Determine the repository name, prioritize the secret if it exists
+#          if [ -n "${{ env.REPO_NAME }}" ]; then
+#            REPO_NAME=${{ env.REPO_NAME }}
+#          else
+#            REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
+#          fi
+#
+###           Capitalize the repository name
+#          REPO_NAME_CAPITALIZED=$(echo "${REPO_NAME:0:1}" | tr '[:lower:]' '[:upper:]')${REPO_NAME:1}
+#
+###           Export the environment variables
+#          echo "REPO_NAME=${REPO_NAME_CAPITALIZED}" >> $GITHUB_ENV
+#
+#      - name: Trigger QA Job
+#        id: trigger_qa_job
+#        env:
+#          BRANCH_NAME: ${{ env.BRANCH_NAME }}
+#          REPO_NAME: ${{ env.REPO_NAME }}
+#          JENKINS_URL: ${{ env.JENKINS_URL }}
+#        run: |
+#          curl -f -X POST "${JENKINS_URL}/job/${{ env.JENKINS_QA_JOB }}/buildWithParameters?SPECIFY_${REPO_NAME}_BRANCH=true&${REPO_NAME}_BRANCH=${BRANCH_NAME}" \
+#            --user "${{ secrets.JENKINS_API_CREDS }}"
+#        continue-on-error: true
+#
+#      - name: Check if any step failed
+#        id: check_failure
+#        run: |
+#          failed=false
+#
+####           Check Jenkins QA job - This just checks that the workflow step passes but will later be configured to wait for the actual Jenkins job to pass/fail
+#          if [[ "${{ steps.trigger_jenkins_qa_job.outcome }}" == "failure" ]]; then
+#            echo "ERROR! Step 'Trigger Jenkins QA Job' has failed!"
+#            if ${{ env.IS_JENKINS_QA_REQUIRED }}; then
+#              failed=true
+#            fi
+#          fi
+#          if [ "$failed" == "true" ]; then
+#            echo "Please expand the failed step(s) for more details."
+#            exit 1
+#          fi
+#
