@@ -5,12 +5,6 @@ on:
   issue_comment:
   workflow_call:
     inputs:
-      jenkins-url:
-        required: true
-        type: string
-      jenkins-qa-job:
-        required: true
-        type: string
       node-version:
         required: true
         type: string
@@ -26,9 +20,6 @@ on:
       unit-tests-required:
         required: true
         type: boolean
-      jenkins-qa-required:
-        required: true
-        type: boolean
 
 permissions:
   issues: write
@@ -36,13 +27,10 @@ permissions:
 
 env:
   NODE_VERSION: ${{ inputs.node-version }}
-  JENKINS_URL: ${{ inputs.jenkins-url }}
-  JENKINS_QA_JOB: ${{ inputs.jenkins-qa-job }}
   IS_LINT_REQUIRED: ${{ inputs.lint-required }}
   IS_FORMAT_CHECK_REQUIRED: ${{ inputs.format-check-required }}
   IS_APPLY_PATCHES_REQUIRED: ${{ inputs.apply-patches-required }}
   IS_UNIT_TESTS_REQUIRED: ${{ inputs.unit-tests-required }}
-  IS_JENKINS_QA_REQUIRED: ${{ inputs.jenkins-qa-required }}
 
 jobs:
   debug-info:
@@ -89,13 +77,10 @@ jobs:
         run: |
           echo "*** Start - Check inputs in shared workflow ***"
           echo "Node Version - Var: ${{ vars.NODE_VERSION }} | Input: ${{ inputs.node-version }} | Env: ${{ env.NODE_VERSION }}"
-          echo "Jenkins URL - Var: ${{ vars.JENKINS_URL }} | Input: ${{ inputs.jenkins-url }} | Env: ${{ env.JENKINS_URL }}"
-          echo "Jenkins QA Job - Var: ${{ vars.JENKINS_QA_JOB }} | Input: ${{ inputs.jenkins-qa-job }} | Env: ${{ env.JENKINS_QA_JOB }}"
           echo "Lint Required - Var: ${{ vars.IS_LINT_REQUIRED }} | Input: ${{ inputs.lint-required }} | Env: ${{ env.IS_LINT_REQUIRED }}"
           echo "Format Check Required - Var: ${{ vars.IS_FORMAT_CHECK_REQUIRED }} | Input: ${{ inputs.format-check-required }} | Env: ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
           echo "Apply Patches Required - Var: ${{ vars.IS_APPLY_PATCHES_REQUIRED }} | Input: ${{ inputs.apply-patches-required }} | Env: ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
           echo "Unit Tests Required - Var: ${{ vars.IS_UNIT_TESTS_REQUIRED }} | Input: ${{ inputs.unit-tests-required }} | Env: ${{ env.IS_UNIT_TESTS_REQUIRED }}"
-          echo "Jenkins QA Required - Var: ${{ vars.IS_JENKINS_QA_REQUIRED }} | Input: ${{ inputs.jenkins-qa-required }} | Env: ${{ env.IS_JENKINS_QA_REQUIRED }}"
           echo "*** End - Check inputs in shared workflow ***"
 
       - name: Install dependencies
@@ -191,90 +176,6 @@ jobs:
             fi
           fi
           
-          if [ "$failed" == "true" ]; then
-            echo "Please expand the failed step(s) for more details."
-            exit 1
-          fi
-
-  # This job is needed to get around the fact that GitHub doesn't let you reference an env in the 'if' for the job
-  determine-jenkins:
-    name: Determine Jenkins Job Requirement
-    runs-on: ubuntu-latest
-    outputs:
-      run-jenkins: ${{ steps.check.outputs.run-jenkins }}
-    steps:
-      - name: Check if Jenkins QA job is required
-        id: check
-        run: |
-          if [ -n "${{ env.JENKINS_QA_JOB }}" ]; then
-            echo "run-jenkins=true" >> $GITHUB_ENV
-            echo "run-jenkins=true" >> $GITHUB_OUTPUT
-          else
-            echo "run-jenkins=false" >> $GITHUB_ENV
-            echo "run-jenkins=false" >> $GITHUB_OUTPUT
-          fi
-      - name: Log run-jenkins output
-        run: |
-          echo "run-jenkins: ${{ steps.check.outputs.run-jenkins }}"
-  trigger-jenkins-job:
-    name: Trigger QA Jenkins Job
-    needs: [merge-checks, determine-jenkins]
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'issue_comment' && needs.determine-jenkins.outputs.run-jenkins == 'true' }}
-    steps:
-      - name: Echo Input Values and Check Defaults
-        run: |
-          echo "Jenkins job Required:           ${{ env.IS_JENKINS_QA_REQUIRED }}"
-          echo "Jenkins job Required:           ${{ env.JENKINS_QA_JOB }}"
-      - name: Configure
-        id: configure
-        run: |
-          # Determine the branch name
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            BRANCH_NAME=${{ github.head_ref }}
-          else
-            BRANCH_NAME=${{ github.ref_name }}
-          fi
-          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
-          
-          # Determine the repository name, prioritize the secret if it exists
-          if [ -n "${{ env.REPO_NAME }}" ]; then
-            REPO_NAME=${{ env.REPO_NAME }}
-          else
-            REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
-          fi
-          
-          # Capitalize the repository name
-          REPO_NAME_CAPITALIZED=$(echo "${REPO_NAME:0:1}" | tr '[:lower:]' '[:upper:]')${REPO_NAME:1}
-          
-          # Export the environment variables
-          echo "REPO_NAME=${REPO_NAME_CAPITALIZED}" >> $GITHUB_ENV
-
-      - name: Trigger Jenkins QA Job
-        id: trigger_jenkins_qa_job
-        env:
-          BRANCH_NAME: ${{ env.BRANCH_NAME }}
-          REPO_NAME: ${{ env.REPO_NAME }}
-          JENKINS_URL: ${{ env.JENKINS_URL }}
-        run: |
-          echo "Curl: "${JENKINS_URL}/job/${{ env.JENKINS_QA_JOB }}/buildWithParameters?SPECIFY_${REPO_NAME}_BRANCH=true&${REPO_NAME}_BRANCH=${BRANCH_NAME}" \
-            --user "${{ secrets.JENKINS_API_CREDS }}"
-          curl -f -X POST "${JENKINS_URL}/job/${{ env.JENKINS_QA_JOB }}/buildWithParameters?SPECIFY_${REPO_NAME}_BRANCH=true&${REPO_NAME}_BRANCH=${BRANCH_NAME}" \
-            --user "${{ secrets.JENKINS_API_CREDS }}"
-        continue-on-error: true
-
-      - name: Check if any step failed
-        id: check_failure
-        run: |
-          failed=false
-          
-          # Check Jenkins QA job - This just checks that the workflow step passes but will later be configured to wait for the actual Jenkins job to pass/fail
-          if [[ "${{ steps.trigger_jenkins_qa_job.outcome }}" == "failure" ]]; then
-            echo "ERROR! Step 'Trigger Jenkins QA Job' has failed!"
-            if ${{ env.IS_JENKINS_QA_REQUIRED }}; then
-              failed=true
-            fi
-          fi
           if [ "$failed" == "true" ]; then
             echo "Please expand the failed step(s) for more details."
             exit 1
