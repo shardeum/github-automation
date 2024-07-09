@@ -20,14 +20,15 @@ on:
       unit-tests-required:
         required: true
         type: boolean
-
+permissions:
+  contents: read
+  pull-requests: write
 env:
   NODE_VERSION: ${{ inputs.node-version }}
   IS_LINT_REQUIRED: ${{ inputs.lint-required }}
   IS_FORMAT_CHECK_REQUIRED: ${{ inputs.format-check-required }}
   IS_APPLY_PATCHES_REQUIRED: ${{ inputs.apply-patches-required }}
   IS_UNIT_TESTS_REQUIRED: ${{ inputs.unit-tests-required }}
-
 jobs:
   debug-info:
     runs-on: ubuntu-latest
@@ -42,9 +43,6 @@ jobs:
     name: Run pr agent on every pull request, respond to user comments
     runs-on: ubuntu-latest
     if: ${{ github.event.sender.type != 'Bot' }}
-    permissions:
-      issues: write
-      pull-requests: write
     steps:
       - name: PR Agent action step
         id: pragent
@@ -60,12 +58,12 @@ jobs:
     name: QA merge checks
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'issue_comment' }}
-    permissions:
-      contents: read
     steps:
 #     https://github.com/actions/checkout
       - name: Checkout repository
         uses: actions/checkout@v4.1.7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4.0.0
