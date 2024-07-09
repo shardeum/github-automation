@@ -20,9 +20,12 @@ on:
       unit-tests-required:
         required: true
         type: boolean
+<<<<<<< Updated upstream
 permissions:
   contents: read
   pull-requests: write
+=======
+>>>>>>> Stashed changes
 env:
   NODE_VERSION: ${{ inputs.node-version }}
   IS_LINT_REQUIRED: ${{ inputs.lint-required }}
@@ -43,6 +46,13 @@ jobs:
     name: Run pr agent on every pull request, respond to user comments
     runs-on: ubuntu-latest
     if: ${{ github.event.sender.type != 'Bot' }}
+<<<<<<< Updated upstream
+=======
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+>>>>>>> Stashed changes
     steps:
       - name: PR Agent action step
         id: pragent
@@ -58,6 +68,8 @@ jobs:
     name: QA merge checks
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'issue_comment' }}
+    permissions:
+      contents: read
     steps:
 #     https://github.com/actions/checkout
       - name: Checkout repository

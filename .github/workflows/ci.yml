@@ -42,6 +42,10 @@ jobs:
       pull-requests: write
       contents: read
     uses: shardeum/github-automation/.github/workflows/reusable-node-ci.yml@dev
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
     with:
       node-version: ${{ vars.NODE_VERSION }}
       lint-required: ${{ vars.IS_LINT_REQUIRED == 'true' }}
@@ -56,6 +60,10 @@ jobs:
       pull-requests: write
       contents: read
     uses: shardeum/github-automation/.github/workflows/reusable-node-ci.yml@main
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
     with:
       node-version: ${{ vars.NODE_VERSION }}
       lint-required: ${{ vars.IS_LINT_REQUIRED == 'true' }}
