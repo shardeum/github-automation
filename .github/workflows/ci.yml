@@ -12,6 +12,7 @@ on:
     branches:
       - dev
       - main
+  issue_comment:
   workflow_dispatch:
     inputs:
       workflowBranch:
@@ -38,9 +39,6 @@ jobs:
           echo "*** End - Check inputs in repo workflow ***"
   ci-dev:
     if: ${{ github.event.inputs.workflowBranch == 'dev' }}
-    permissions:
-      pull-requests: write
-      contents: read
     uses: shardeum/github-automation/.github/workflows/reusable-node-ci.yml@dev
     permissions:
       issues: write
@@ -56,9 +54,6 @@ jobs:
 
   ci-main:
     if: ${{ github.event.inputs.workflowBranch == 'main' || !github.event.inputs.workflowBranch }}
-    permissions:
-      pull-requests: write
-      contents: read
     uses: shardeum/github-automation/.github/workflows/reusable-node-ci.yml@main
     permissions:
       issues: write

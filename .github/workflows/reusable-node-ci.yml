@@ -2,7 +2,6 @@ name: Shardeum Reusable CI Workflow for Node projects
 
 # All variables must be set at the repo workflow call and provided to this shared/reusable workflow
 on:
-  issue_comment:
   workflow_call:
     inputs:
       node-version:
@@ -37,6 +36,8 @@ jobs:
           echo "Event Action:         ${{ github.event.action }}"
           echo "Event Sender Type:    ${{ github.event.sender.type }}"
   pr_agent_job:
+# Configuration File options: https://github.com/Codium-ai/pr-agent/blob/main/pr_agent/settings/configuration.toml
+# GitHub Action installation: https://pr-agent-docs.codium.ai/installation/github/#run-as-a-github-action
     name: Run pr agent on every pull request, respond to user comments
     runs-on: ubuntu-latest
     if: ${{ github.event.sender.type != 'Bot' }}
