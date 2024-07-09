@@ -67,8 +67,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.0.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4.0.0
