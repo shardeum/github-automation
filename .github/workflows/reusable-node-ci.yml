@@ -86,9 +86,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          echo "Installing dependencies..."
-          npm ci --ignore-scripts
-          echo "Dependency installation complete."
+          echo "Install and build..."
+          npm ci
+          echo "Install and Build complete."
         continue-on-error: false
 
       - name: Lint
@@ -124,15 +124,7 @@ jobs:
           fi
         continue-on-error: true
 
-      - name: Build
-        id: build
-        run: |
-          echo "Building the code..."
-          npm run build
-          echo "Build complete."
-        continue-on-error: false
-
-      - name: Unit Tests
+      - name: Run Unit Tests
         id: unit_tests
         run: |
           echo "Running Unit Tests..."
@@ -148,6 +140,7 @@ jobs:
           # Check Lint
           if [[ "${{ steps.lint.outcome }}" == "failure" ]]; then
             echo "ERROR! Step 'lint' has failed! Please expand the step output for more details."
+            echo "IS_LINT_REQUIRED = ${{ env.IS_LINT_REQUIRED }}"
             if ${{ env.IS_LINT_REQUIRED }}; then
               failed=true
             fi
@@ -156,6 +149,7 @@ jobs:
           # Check Format Check
           if [[ "${{ steps.format_check.outcome }}" == "failure" ]]; then
             echo "ERROR! Step 'format_check' has failed!"
+            echo "IS_FORMAT_CHECK_REQUIRED = ${{ env.IS_FORMAT_CHECK_REQUIRED }}"
             if ${{ env.IS_FORMAT_CHECK_REQUIRED }}; then
               failed=true
             fi
@@ -164,6 +158,7 @@ jobs:
           # Check Apply Patches
           if [[ "${{ steps.test_apply_patches.outcome }}" == "failure" ]]; then
             echo "ERROR! Step 'test_apply_patches' has failed!"
+            echo "IS_APPLY_PATCHES_REQUIRED = ${{ env.IS_APPLY_PATCHES_REQUIRED }}"
             if ${{ env.IS_APPLY_PATCHES_REQUIRED }}; then
               failed=true
             fi
@@ -172,6 +167,7 @@ jobs:
           # Check Unit Tests
           if [[ "${{ steps.unit_tests.outcome }}" == "failure" ]]; then
             echo "ERROR! Step 'unit_tests' has failed!"
+            echo "IS_UNIT_TESTS_REQUIRED = ${{ env.IS_UNIT_TESTS_REQUIRED }}"
             if ${{ env.IS_UNIT_TESTS_REQUIRED }}; then
               failed=true
             fi
@@ -179,5 +175,6 @@ jobs:
           
           if [ "$failed" == "true" ]; then
             echo "Please expand the failed step(s) for more details."
+            echo "Linting, Format Check, Unit Tests and Apply Patches are required to pass by default but may be overridden at the Org or Repo level by setting the corresponding variable(s) to 'true' or 'false'. Please notify Systems & Automation to make this request"
             exit 1
           fi
