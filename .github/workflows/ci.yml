@@ -13,6 +13,15 @@ on:
       - dev
       - main
   issue_comment:
+    inputs:
+      workflowBranch:
+        description: 'Branch of the reusable workflow. Defaults to main, select dev for testing only.'
+        required: true
+        default: 'main'
+        type: choice
+        options:
+          - dev
+          - main
   workflow_dispatch:
     inputs:
       workflowBranch:
