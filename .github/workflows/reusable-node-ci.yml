@@ -84,9 +84,9 @@ jobs:
           echo "Unit Tests Required - Var: ${{ vars.IS_UNIT_TESTS_REQUIRED }} | Input: ${{ inputs.unit-tests-required }} | Env: ${{ env.IS_UNIT_TESTS_REQUIRED }}"
           echo "*** End - Check inputs in shared workflow ***"
 
-      - name: Install dependencies
+      - name: Install and Build
         run: |
-          echo "Install and build..."
+          echo "Install dependencies and build the project..."
           npm ci
           echo "Install and Build complete."
         continue-on-error: false
@@ -110,6 +110,7 @@ jobs:
       - name: Test apply patches
         id: test_apply_patches
         run: |
+          echo "Test apply all patches..."
           set -e
           shopt -s nullglob
           patches=(*.patch)
