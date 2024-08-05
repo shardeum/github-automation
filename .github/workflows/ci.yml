@@ -40,6 +40,7 @@ jobs:
       - name: Check Repo Vars
         run: |
           echo "*** Start - Check inputs in repo workflow ***"
+          echo "Rust Version: ${{ vars.RUST_VERSION }}"
           echo "Node Version: ${{ vars.NODE_VERSION }}"
           echo "Lint Required: ${{ vars.IS_LINT_REQUIRED }}"
           echo "Format Check Required: ${{ vars.IS_FORMAT_CHECK_REQUIRED }}"
@@ -54,6 +55,7 @@ jobs:
       pull-requests: write
       contents: write
     with:
+#      rust-version: ${{ vars.RUST_VERSION }}
       node-version: ${{ vars.NODE_VERSION }}
       lint-required: ${{ vars.IS_LINT_REQUIRED == 'true' }}
       format-check-required: ${{ vars.IS_FORMAT_CHECK_REQUIRED == 'true' }}
@@ -69,6 +71,7 @@ jobs:
       pull-requests: write
       contents: write
     with:
+#      rust-version: ${{ vars.RUST_VERSION }}
       node-version: ${{ vars.NODE_VERSION }}
       lint-required: ${{ vars.IS_LINT_REQUIRED == 'true' }}
       format-check-required: ${{ vars.IS_FORMAT_CHECK_REQUIRED == 'true' }}
