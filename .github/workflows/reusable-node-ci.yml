@@ -4,6 +4,10 @@ name: Shardeum Reusable CI Workflow for Node projects
 on:
   workflow_call:
     inputs:
+      rust-version:
+        required: false
+        type: string
+        default: ${{ vars.RUST_VERSION }}
       node-version:
         required: true
         type: string
@@ -21,6 +25,7 @@ on:
         type: boolean
 env:
   NODE_VERSION: ${{ inputs.node-version }}
+  RUST_VERSION: ${{ inputs.rust-version }}
   IS_LINT_REQUIRED: ${{ inputs.lint-required }}
   IS_FORMAT_CHECK_REQUIRED: ${{ inputs.format-check-required }}
   IS_APPLY_PATCHES_REQUIRED: ${{ inputs.apply-patches-required }}
@@ -73,6 +78,12 @@ jobs:
         uses: actions/setup-node@v4.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          override: true
 
       - name: Echo Input Values and Check Defaults
         run: |
