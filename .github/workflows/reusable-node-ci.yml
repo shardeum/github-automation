@@ -9,20 +9,25 @@ on:
         type: string
         default: ${{ vars.RUST_VERSION }}
       node-version:
-        required: true
+        required: false
         type: string
+        default: ${{ vars.NODE_VERSION }}
       lint-required:
-        required: true
+        required: false
         type: boolean
+        default: ${{ vars.IS_LINT_REQUIRED == 'true' }}
       format-check-required:
-        required: true
+        required: false
         type: boolean
+        default: ${{ vars.IS_FORMAT_CHECK_REQUIRED == 'true' }}
       apply-patches-required:
-        required: true
+        required: false
         type: boolean
+        default: ${{ vars.IS_APPLY_PATCHES_REQUIRED == 'true' }}
       unit-tests-required:
-        required: true
+        required: false
         type: boolean
+        default: ${{ vars.IS_UNIT_TESTS_REQUIRED == 'true' }}
 env:
   NODE_VERSION: ${{ inputs.node-version }}
   RUST_VERSION: ${{ inputs.rust-version }}
