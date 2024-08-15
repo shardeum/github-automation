@@ -72,6 +72,7 @@ jobs:
       contents: write
     with:
 #      rust-version: ${{ vars.RUST_VERSION }}
+#      target-coverage: ${{ vars.TARGET_COVERAGE }}
       node-version: ${{ vars.NODE_VERSION }}
       lint-required: ${{ vars.IS_LINT_REQUIRED == 'true' }}
       format-check-required: ${{ vars.IS_FORMAT_CHECK_REQUIRED == 'true' }}

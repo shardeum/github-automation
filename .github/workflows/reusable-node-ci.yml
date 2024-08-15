@@ -218,8 +218,13 @@ jobs:
           elif [ "$COVERAGE" -eq 0 ]; then
             echo "Coverage check skipped as test:coverage was not found."
           else
-            echo "Coverage is below $TARGET_COVERAGE% and below the current threshold. Test fails."
-            exit 1
+            echo "Coverage is below $TARGET_COVERAGE% and below the current threshold."
+            if [ "$IS_UNIT_TESTS_REQUIRED" = "true" ]; then
+              echo "Coverage has decreased below the threshold and tests are required to pass. Failing the build."
+              exit 1
+            else
+              echo "Coverage has decreased below the threshold but tests are NOT required to pass."
+            fi
           fi
 
       - name: Commit Jest-it-up changes (if applicable)
