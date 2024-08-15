@@ -55,6 +55,8 @@ jobs:
       pull-requests: write
       contents: write
     with:
+#   These are optional and included here demonstratively. If either of these are to be overridden at the repo level,
+#   include them (uncommented) in that repo's ci.yml. Include them in BOTH ci and ci-test-only!
 #      rust-version: ${{ vars.RUST_VERSION }}
 #      target-coverage: ${{ vars.TARGET_COVERAGE }}
       node-version: ${{ vars.NODE_VERSION }}
