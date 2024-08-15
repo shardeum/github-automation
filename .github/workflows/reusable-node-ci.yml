@@ -157,6 +157,7 @@ jobs:
             npm run test
             COVERAGE=0
           fi
+        continue-on-error: true
 
       - name: Check if any step failed
         id: check_failure
@@ -206,7 +207,7 @@ jobs:
           fi
 
       - name: Check Coverage
-        if: steps.test-and-coverage.outputs.has-coverage == 'true'
+        if: steps.unit_tests.outcome == 'success' && steps.test-and-coverage.outputs.has-coverage == 'true'
         run: |
           THRESHOLD=$(grep -oP '(?<=lines: )\d+' jest.config.js)
           TARGET_COVERAGE=${{ inputs.target-coverage }}
