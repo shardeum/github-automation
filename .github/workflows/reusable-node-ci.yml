@@ -28,6 +28,10 @@ on:
         required: false
         type: boolean
         default: ${{ vars.IS_UNIT_TESTS_REQUIRED == 'true' }}
+      target-coverage:
+        required: false
+        type: string
+        default: ${{ vars.TARGET_COVERAGE }}
 env:
   NODE_VERSION: ${{ inputs.node-version }}
   RUST_VERSION: ${{ inputs.rust-version }}
@@ -141,13 +145,18 @@ jobs:
           fi
         continue-on-error: true
 
-      - name: Run Unit Tests
-        id: unit_tests
+      - name: Run Tests and Collect Coverage
         run: |
-          echo "Running Unit Tests..."
-          npm test
-          echo "Unit Tests complete."
-        continue-on-error: true
+          if npm run | grep -q "test:coverage"; then
+            echo "Running `npm run test:coverage`"
+            npm run test:coverage
+            COVERAGE=$(npx jest --coverage --coverageReporters=text-summary | grep -oP '(?<=All files)[^\d]*\K\d+')
+            npx jest-it-up
+          else
+            echo "test:coverage not found, running `npm run test`"
+            npm run test
+            COVERAGE=0
+          fi
 
       - name: Check if any step failed
         id: check_failure
@@ -195,3 +204,31 @@ jobs:
             echo "Linting, Format Check, Unit Tests and Apply Patches are required to pass by default but may be overridden at the Org or Repo level by setting the corresponding variable(s) to 'true' or 'false'. Please notify Systems & Automation to make this request"
             exit 1
           fi
+
+      - name: Check Coverage
+        if: steps.test-and-coverage.outputs.has-coverage == 'true'
+        run: |
+          THRESHOLD=$(grep -oP '(?<=lines: )\d+' jest.config.js)
+          TARGET_COVERAGE=${{ inputs.target-coverage }}
+
+          if [ "$COVERAGE" -ge "$TARGET_COVERAGE" ]; then
+            echo "Coverage is above or equal to the target of $TARGET_COVERAGE%. Test passes."
+          elif [ "$COVERAGE" -ge "$THRESHOLD" ]; then
+            echo "Coverage is below $TARGET_COVERAGE% but meets or exceeds the current threshold. Test passes."
+          elif [ "$COVERAGE" -eq 0 ]; then
+            echo "Coverage check skipped as test:coverage was not found."
+          else
+            echo "Coverage is below $TARGET_COVERAGE% and below the current threshold. Test fails."
+            exit 1
+          fi
+
+      - name: Commit Jest-it-up changes (if applicable)
+        if: steps.test-and-coverage.outputs.has-coverage == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add jest.config.js
+          git commit -m "chore: update coverage thresholds with jest-it-up" || echo "No changes to commit"
+
+      - name: Push changes
+        run: git push || echo "No changes to push"

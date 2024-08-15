@@ -1,9 +1,5 @@
-// src/helloWorld.ts
+// helloWorld.ts
 
-// Function to print "Hello, World!"
-export function sayHello(): string {
-  return 'Hello, World!'
+export function helloWorld(name: string): string {
+    return `Hello, ${name}!`;
 }
-
-// Call the function and log the result to the console
-console.log(sayHello())
