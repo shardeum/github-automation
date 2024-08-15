@@ -11,7 +11,7 @@
     "format-fix": "prettier --write \"./src/**/*.ts\"",
     "test": "jest",
     "test:istanbul": "nyc jest",
-    "test:coverage": "jest --coverage",
+    "test:coverage": "jest --coverage --coverageReporters=\"text-summary\" --coverageReporters=\"json-summary\"",
     "posttest": "jest-it-up",
     "clean": "rimraf dist"
   },

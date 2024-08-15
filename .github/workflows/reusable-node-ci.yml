@@ -148,10 +148,10 @@ jobs:
       - name: Run Tests and Collect Coverage
         run: |
           if npm run | grep -q "test:coverage"; then
-            echo "Running `npm run test:coverage`"
-            npm run test:coverage
-            COVERAGE=$(npx jest --coverage --coverageReporters=text-summary | grep -oP '(?<=All files)[^\d]*\K\d+')
-            npx jest-it-up
+            OUTPUT=$(npm run test:coverage")
+            echo "$OUTPUT"
+            COVERAGE=$(echo "$OUTPUT" | grep -oP '(?<=All files)[^\d]*\K\d+')
+            npm run posttest
           else
             echo "test:coverage not found, running `npm run test`"
             npm run test
