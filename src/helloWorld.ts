@@ -1,5 +1,5 @@
 // helloWorld.ts
 
 export function helloWorld(name: string): string {
-    return `Hello, ${name}!`;
+  return `Hello, ${name}!`
 }
