@@ -149,10 +149,10 @@ jobs:
         id: unit_tests
         run: |
           if npm run | grep -q "test:coverage"; then
-            OUTPUT=$(npm run test:coverage)
+            echo "Running test:coverage now..." 
+            OUTPUT=$(npm run test:coverage )
             echo "$OUTPUT"
             COVERAGE=$(echo "$OUTPUT" | grep -oP '(?<=All files)[^\d]*\K\d+')
-            npm run posttest
           else
             echo "test:coverage not found, running `npm run test`"
             npm run test
@@ -232,6 +232,9 @@ jobs:
       - name: Commit Jest-it-up changes (if applicable)
         if: steps.test-and-coverage.outputs.has-coverage == 'true'
         run: |
+          echo "Running posttest (jest-it-up) now..." 
+          npm run posttest
+          echo "Comitting jest-it-up changes..."
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add jest.config.js
