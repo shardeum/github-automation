@@ -146,6 +146,7 @@ jobs:
         continue-on-error: true
 
       - name: Run Tests and Collect Coverage
+        id: unit_tests
         run: |
           if npm run | grep -q "test:coverage"; then
             OUTPUT=$(npm run test:coverage")
