@@ -1,0 +1,9 @@
+{
+  "include": ["src/**/*.ts"],
+  "exclude": ["**/node_modules/**", "**/test/**"],
+  "reporter": ["lcov", "text"],
+  "extension": [".ts"],
+  "all": true,
+  "sourceMap": true,
+  "instrument": true
+}

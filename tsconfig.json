@@ -1,20 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "ES6",
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "allowJs": true,
-    "outDir": "dist",
-    "types": ["mocha", "node", "chai"]
+    "outDir": "./dist",
+    "types": ["jest"],
+    "sourceMap": true,
+    "inlineSourceMap": true,
+    "inlineSources": true
   },
-  "include": [
-    "src/**/*.ts",
-    "test/**/*.ts"
-  ],
-  "exclude": [
-    "dist"
-  ]
+  "include": ["src/**/*.ts", "test/**/*.ts"]
 }
