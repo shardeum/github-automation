@@ -83,6 +83,9 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Set up Node.js
         uses: actions/setup-node@v4.0.0
         with:
@@ -153,15 +156,15 @@ jobs:
             OUTPUT=$(npm run test:coverage)
             echo "$OUTPUT"
             ls -la coverage
-            COVERAGE=$(grep -oP '"lines":\{"total":[^,]+,"covered":[^,]+,"skipped":[^,]+,"pct":\K[0-9]+' coverage/coverage-summary.json)
+            COVERAGE=$(jq '.total.lines.pct' coverage/coverage-summary.json)
             echo "Coverage: $COVERAGE"
             echo "coverage_ran=true" >> $GITHUB_ENV
-            echo "coverage_value=$COVERAGE" >> $GITHUB_ENV
+            echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
           else
             echo "test:coverage not found, running npm run test"
             npm run test
             echo "coverage_ran=false" >> $GITHUB_ENV
-            echo "coverage_value=0" >> $GITHUB_ENV
+            echo "$COVERAGE=0" >> $GITHUB_ENV
           fi
         continue-on-error: true
 
