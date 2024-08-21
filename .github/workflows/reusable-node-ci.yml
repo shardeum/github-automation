@@ -156,10 +156,11 @@ jobs:
             OUTPUT=$(npm run test:coverage)
             echo "$OUTPUT"
             ls -la coverage
-            COVERAGE=$(jq '.total.lines.pct' coverage/coverage-summary.json)
-            echo "Coverage: $COVERAGE"
+            jq '.total.lines.pct' coverage/coverage-summary.json
+            COVERAGE_PERCENT=$(jq '.total.lines.pct' coverage/coverage-summary.json)
+            echo "Coverage: COVERAGE_PERCENT"
             echo "coverage_ran=true" >> $GITHUB_ENV
-            echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
+            echo "COVERAGE=$COVERAGE_PERCENT" >> $GITHUB_ENV
           else
             echo "test:coverage not found, running npm run test"
             npm run test
