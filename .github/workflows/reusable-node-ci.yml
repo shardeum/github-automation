@@ -150,13 +150,16 @@ jobs:
         run: |
           if npm run | grep -q "test:coverage"; then
             echo "Running test:coverage now..." 
-            OUTPUT=$(npm run test:coverage )
+            OUTPUT=$(npm run test:coverage)
             echo "$OUTPUT"
             COVERAGE=$(echo "$OUTPUT" | grep -oP '(?<=All files)[^\d]*\K\d+')
+            echo "coverage_ran=true" >> $GITHUB_ENV
+            echo "coverage_value=$COVERAGE" >> $GITHUB_ENV
           else
-            echo "test:coverage not found, running `npm run test`"
+            echo "test:coverage not found, running npm run test"
             npm run test
-            COVERAGE=0
+            echo "coverage_ran=false" >> $GITHUB_ENV
+            echo "coverage_value=0" >> $GITHUB_ENV
           fi
         continue-on-error: true
 
@@ -208,33 +211,47 @@ jobs:
           fi
 
       - name: Check Coverage
-        if: steps.unit_tests.outcome == 'success' && steps.test-and-coverage.outputs.has-coverage == 'true'
+        if: steps.unit_tests.outcome == 'success' && env.coverage_ran == 'true'
+        id: check_coverage
         run: |
           THRESHOLD=$(grep -oP '(?<=lines: )\d+' jest.config.js)
           TARGET_COVERAGE=${{ inputs.target-coverage }}
+          echo "coverage_passed=false" >> $GITHUB_ENV
+
+          if [ -z "$COVERAGE" ] || [ -z "$TARGET_COVERAGE" ] || [ -z "$THRESHOLD" ]; then
+            echo "One of the coverage variables is unset. Please check the test outputs."
+            exit 1
+          fi
 
           if [ "$COVERAGE" -ge "$TARGET_COVERAGE" ]; then
             echo "Coverage is above or equal to the target of $TARGET_COVERAGE%. Test passes."
+            echo "coverage_passed=true" >> $GITHUB_ENV
           elif [ "$COVERAGE" -ge "$THRESHOLD" ]; then
             echo "Coverage is below $TARGET_COVERAGE% but meets or exceeds the current threshold. Test passes."
-          elif [ "$COVERAGE" -eq 0 ]; then
-            echo "Coverage check skipped as test:coverage was not found."
+            echo "coverage_passed=true" >> $GITHUB_ENV
           else
-            echo "Coverage is below $TARGET_COVERAGE% and below the current threshold."
-            if [ "$IS_UNIT_TESTS_REQUIRED" = "true" ]; then
+            echo "Coverage check failed! Coverage is below target ($TARGET_COVERAGE%) and below the current threshold ($THRESHOLD)."
+            if [ "${{ env.IS_UNIT_TESTS_REQUIRED }}" == "true" ]; then
               echo "Coverage has decreased below the threshold and tests are required to pass. Failing the build."
               exit 1
             else
-              echo "Coverage has decreased below the threshold but tests are NOT required to pass."
+              echo "Coverage has decreased below the threshold but tests are NOT required to pass, skip next steps to update the jest config."
+              exit 0
             fi
           fi
 
-      - name: Commit Jest-it-up changes (if applicable)
-        if: steps.test-and-coverage.outputs.has-coverage == 'true'
+      - name: Update Jest config with coverage
+        id: update_coverage
+        if: steps.check_coverage.outcome == 'success'
         run: |
           echo "Running posttest (jest-it-up) now..." 
           npm run posttest
-          echo "Comitting jest-it-up changes..."
+
+      - name: Commit Jest-it-up changes (if applicable)
+        id: commit_coverage_updates
+        if: steps.update_coverage.outcome == 'success'
+        run: |
+          echo "Committing jest-it-up changes..."
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add jest.config.js
