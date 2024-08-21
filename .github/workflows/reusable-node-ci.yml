@@ -258,4 +258,5 @@ jobs:
           git commit -m "chore: update coverage thresholds with jest-it-up" || echo "No changes to commit"
 
       - name: Push changes
+        if: steps.commit_coverage_updates.outcome == 'success'
         run: git push || echo "No changes to push"
