@@ -149,7 +149,7 @@ jobs:
         id: unit_tests
         run: |
           if npm run | grep -q "test:coverage"; then
-            OUTPUT=$(npm run test:coverage")
+            OUTPUT=$(npm run test:coverage)
             echo "$OUTPUT"
             COVERAGE=$(echo "$OUTPUT" | grep -oP '(?<=All files)[^\d]*\K\d+')
             npm run posttest
