@@ -1,0 +1,44 @@
+name: Summarize 
+
+on:
+  workflow_call:
+    inputs:
+      job_name:  # New input to specify the job to summarize
+        required: true
+        type: string
+    secrets:
+      github-token:
+        required: true
+
+jobs:
+  post-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download logs artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.job_name }}-logs  # Use the job_name input to construct the artifact name
+
+      - name: Summarize logs and post comment
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} 
+        run: |
+          LOGS=$(cat ${{ inputs.job_name }}-logs/*.txt | tr '\n' '\r')
+          PROMPT="Summarize the following GitHub workflow logs:\r$LOGS"
+
+          # ... (rest of your logic to call the Gemini API and post the comment) ...
+
+      - name: Post PR comment
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request' 
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '${{ inputs.summary }}'
+            });
+
+      - name: Log summary
+        run: 'echo "Workflow summary: ${{ inputs.summary }}" >> workflow_summary.log'

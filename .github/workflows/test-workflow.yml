@@ -1,0 +1,32 @@
+name: Test Summarize Workflow
+
+on: 
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  generate-logs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate fake logs
+        run: |
+          echo "Step 1: Cloning repository..." > fake_logs.txt
+          echo "Step 2: Installing dependencies..." >> fake_logs.txt
+          echo "Step 3: Building project..." >> fake_logs.txt
+          echo "Step 4: Running tests..." >> fake_logs.txt
+          echo "    Test 1: Passed" >> fake_logs.txt
+          echo "    Test 2: Failed" >> fake_logs.txt
+          echo "Step 5: Uploading artifacts..." >> fake_logs.txt
+
+      - name: Upload logs artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-job-logs  # Name the artifact to match the 'job_name' you'll pass later
+          path: fake_logs.txt
+
+  trigger-summarize:
+    needs: generate-logs  # Ensure this runs after the logs are generated
+    uses: ./.github/workflows/summarize-log.yml 
+    with:
+      job_name: test-job  # Match the artifact name prefix
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
