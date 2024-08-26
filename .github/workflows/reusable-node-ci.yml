@@ -241,7 +241,7 @@ jobs:
               echo "Coverage has decreased below the threshold and tests are required to pass. Failing the build."
               exit 1
             else
-              echo "Coverage has decreased below the threshold but tests are NOT required to pass, skip next steps to update the jest config."
+              echo "Coverage has decreased below the threshold but tests are NOT required to pass"
               exit 0
             fi
           fi
