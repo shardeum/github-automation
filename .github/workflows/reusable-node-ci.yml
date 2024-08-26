@@ -158,7 +158,7 @@ jobs:
             ls -la coverage
             jq '.total.lines.pct' coverage/coverage-summary.json
             COVERAGE_PERCENT=$(jq '.total.lines.pct' coverage/coverage-summary.json)
-            echo "Coverage: COVERAGE_PERCENT"
+            echo "Coverage: $COVERAGE_PERCENT"
             echo "coverage_ran=true" >> $GITHUB_ENV
             echo "COVERAGE=$COVERAGE_PERCENT" >> $GITHUB_ENV
           else
