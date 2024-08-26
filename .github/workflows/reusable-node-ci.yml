@@ -241,28 +241,7 @@ jobs:
               echo "Coverage has decreased below the threshold and tests are required to pass. Failing the build."
               exit 1
             else
-              echo "Coverage has decreased below the threshold but tests are NOT required to pass, skip next steps to update the jest config."
+              echo "Coverage has decreased below the threshold but tests are NOT required to pass"
               exit 0
             fi
           fi
-
-      - name: Update Jest config with coverage
-        id: update_coverage
-        if: steps.check_coverage.outcome == 'success'
-        run: |
-          echo "Running posttest (jest-it-up) now..." 
-          npm run posttest
-
-      - name: Commit Jest-it-up changes (if applicable)
-        id: commit_coverage_updates
-        if: steps.update_coverage.outcome == 'success'
-        run: |
-          echo "Committing jest-it-up changes..."
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add jest.config.js
-          git commit -m "chore: update coverage thresholds with jest-it-up" || echo "No changes to commit"
-
-      - name: Push changes
-        if: steps.commit_coverage_updates.outcome == 'success'
-        run: git push || echo "No changes to push"
