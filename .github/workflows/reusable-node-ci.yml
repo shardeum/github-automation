@@ -165,7 +165,7 @@ jobs:
             echo "test:coverage not found, running npm run test"
             npm run test
             echo "coverage_ran=false" >> $GITHUB_ENV
-            echo "$COVERAGE=0" >> $GITHUB_ENV
+            echo "COVERAGE=0" >> $GITHUB_ENV
           fi
         continue-on-error: true
 
