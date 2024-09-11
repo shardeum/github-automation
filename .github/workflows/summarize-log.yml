@@ -10,12 +10,13 @@ on:
       github-token:
         required: true
 
+permissions:
+  issues: write
+  pull-requests: write
+  contents: write
+
 jobs:
   post-comment:
-    permissions:
-      issues: write
-      pull-requests: write
-      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Download logs artifact
