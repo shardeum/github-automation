@@ -1,7 +1,7 @@
 name: Test Summarize Workflow
 
 on: 
-  workflow_dispatch: # Allows manual triggering
+  pull_request
 
 jobs:
   generate-logs:
