@@ -3,7 +3,7 @@ name: Summarize
 on:
   workflow_call:
     inputs:
-      job_name:  
+      job_name:
         required: true
         type: string
     secrets:
@@ -26,7 +26,7 @@ jobs:
 
       - name: Summarize logs and post comment
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} 
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           LOGS=$(cat ${{ inputs.job_name }}-logs/*.txt | tr '\n' '\r')
           PROMPT="Summarize the following GitHub workflow logs:\r$LOGS"
@@ -40,9 +40,10 @@ jobs:
           # Set the summary as an environment variable for the next step
           echo "SUMMARY=$SUMMARY" >> $GITHUB_ENV
 
-      - name: Post PR comment
+      - name: Post PR comment OR Log summary
+        # Use a conditional step to either post a comment or log the summary
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
-        if: github.event_name == 'pull_request' 
         with:
           script: |
             github.rest.issues.createComment({
@@ -51,6 +52,10 @@ jobs:
               repo: context.repo.repo,
               body: '${{ env.SUMMARY }}' 
             });
+        env:
+          SUMMARY: ${{ env.SUMMARY }}
 
-      - name: Log summary
+      - name: Log summary (if not a pull request)
+        # This step will run if it's NOT a pull request
+        if: github.event_name != 'pull_request'
         run: 'echo "Workflow summary: ${{ env.SUMMARY }}" >> workflow_summary.log'
