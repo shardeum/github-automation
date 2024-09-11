@@ -1,9 +1,9 @@
-name: Summarize 
+name: Summarize
 
 on:
   workflow_call:
     inputs:
-      job_name:  # New input to specify the job to summarize
+      job_name:  
         required: true
         type: string
     secrets:
@@ -22,7 +22,7 @@ jobs:
       - name: Download logs artifact
         uses: actions/download-artifact@v3
         with:
-          name: ${{ inputs.job_name }}-logs  # Use the job_name input to construct the artifact name
+          name: ${{ inputs.job_name }}-logs
 
       - name: Summarize logs and post comment
         env:
@@ -31,7 +31,14 @@ jobs:
           LOGS=$(cat ${{ inputs.job_name }}-logs/*.txt | tr '\n' '\r')
           PROMPT="Summarize the following GitHub workflow logs:\r$LOGS"
 
-          # ... (rest of your logic to call the Gemini API and post the comment) ...
+          # Call Gemini API using curl
+          SUMMARY=$(curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $GEMINI_API_KEY" -d "{\"prompt\": \"$PROMPT\"}" https://api.gemini.com/v1/completions)
+
+          # Extract summary from Gemini response using jq
+          SUMMARY=$(echo $SUMMARY | jq -r '.completions[0].text') 
+
+          # Set the summary as an environment variable for the next step
+          echo "SUMMARY=$SUMMARY" >> $GITHUB_ENV
 
       - name: Post PR comment
         uses: actions/github-script@v6
@@ -42,8 +49,8 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '${{ inputs.summary }}'
+              body: '${{ env.SUMMARY }}' 
             });
 
       - name: Log summary
-        run: 'echo "Workflow summary: ${{ inputs.summary }}" >> workflow_summary.log'
+        run: 'echo "Workflow summary: ${{ env.SUMMARY }}" >> workflow_summary.log'
