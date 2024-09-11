@@ -23,6 +23,9 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.job_name }}-logs
+          
+      - name: List artifact contents
+        run: ls -lR  # List all files and directories recursively
 
       - name: Summarize logs and post comment
         env:
