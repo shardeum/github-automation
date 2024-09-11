@@ -23,7 +23,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.job_name }}-logs
-          
+
       - name: List artifact contents
         run: ls -lR  # List all files and directories recursively
 
@@ -31,7 +31,7 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          LOGS=$(cat ${{ inputs.job_name }}-logs/*.txt | tr '\n' '\r')
+          LOGS=$(cat *.txt)
           PROMPT="Summarize the following GitHub workflow logs:\r$LOGS"
 
           # Call Gemini API using curl
