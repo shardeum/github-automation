@@ -34,14 +34,35 @@ jobs:
           LOGS=$(cat *.txt)
           PROMPT="Summarize the following GitHub workflow logs:\r$LOGS"
 
+          JSON_PAYLOAD=$(jq -n --arg text "$PROMPT" '{"contents":[{"parts":[{"text":$text}]}]}')
+
+
           # Call Gemini API using curl
-          SUMMARY=$(curl -s -X POST -H "Content-Type: application/json" -d `{"contents":[{"parts":[{"text":"$PROMPT"}]}]}` 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=$GEMINI_API_KEY')
+          RESPONSE=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d "$JSON_PAYLOAD" \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}")
+
+          # Check if curl command was successful
+          if [ $? -ne 0 ]; then
+            echo "Error: Failed to call Gemini API."
+            exit 1
+          fi
 
           # Extract summary from Gemini response using jq
-          SUMMARY=$(echo $SUMMARY | jq -r '.candidates[0].content.parts[0].text') 
+          SUMMARY=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text')
+
+           # Validate SUMMARY
+          if [ -z "$SUMMARY" ] || [ "$SUMMARY" == "null" ]; then
+            echo "Error: Summary is empty or null."
+            exit 1
+          fi
+
 
           # Set the summary as an environment variable for the next step
-          echo "SUMMARY=$SUMMARY" >> $GITHUB_ENV
+          echo "SUMMARY<<EOF" >> $GITHUB_ENV
+          echo "$SUMMARY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Post PR comment OR Log summary
         # Use a conditional step to either post a comment or log the summary
