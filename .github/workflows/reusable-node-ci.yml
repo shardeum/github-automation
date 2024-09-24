@@ -134,17 +134,28 @@ jobs:
         id: test_apply_patches
         run: |
           echo "Test apply all patches..."
-          set -e
           shopt -s nullglob
           patches=(*.patch)
+          failed_patches=()
           if [ ${#patches[@]} -eq 0 ]; then
             echo "No patches to test."
           else
             for patch in "${patches[@]}"; do
               echo "Testing $patch"
-              git apply --check -v "$patch" || (echo "Failed to apply patch: $patch" && exit 1)
+              if ! git apply --check -v "$patch"; then
+                echo "Failed to apply patch: $patch"
+                failed_patches+=("$patch")
+              fi
             done
-            echo "All patches applied successfully."
+            if [ ${#failed_patches[@]} -gt 0 ]; then
+              echo "Failed patches:"
+              for failed in "${failed_patches[@]}"; do
+                echo "$failed"
+              done
+              exit 1
+            else
+              echo "All patches applied successfully."
+            fi
           fi
         continue-on-error: true
 
