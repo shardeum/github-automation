@@ -43,9 +43,22 @@ jobs:
             -d "$JSON_PAYLOAD" \
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}")
 
-          # Check if curl command was successful
-          if [ $? -ne 0 ]; then
-            echo "Error: Failed to call Gemini API."
+          echo "Gemini API Response: $RESPONSE"
+
+          # Extract HTTP status code
+          HTTP_STATUS=$(echo "$RESPONSE" | grep HTTP_STATUS | awk -F: '{print $2}')
+          # Extract the JSON body
+          RESPONSE_BODY=$(echo "$RESPONSE" | sed -e 's/HTTP_STATUS\:.*//g')
+          
+          echo "HTTP Status Code: $HTTP_STATUS"
+          echo "Response Body: $RESPONSE_BODY"
+          
+          # Check if the HTTP status code indicates success
+          if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
+            echo "Gemini API call successful."
+          else
+            echo "Error: Gemini API returned status code $HTTP_STATUS."
+            echo "Response Body: $RESPONSE_BODY"
             exit 1
           fi
 
@@ -57,7 +70,6 @@ jobs:
             echo "Error: Summary is empty or null."
             exit 1
           fi
-
 
           # Set the summary as an environment variable for the next step
           echo "SUMMARY<<EOF" >> $GITHUB_ENV
