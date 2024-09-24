@@ -35,10 +35,10 @@ jobs:
           PROMPT="Summarize the following GitHub workflow logs:\r$LOGS"
 
           # Call Gemini API using curl
-          SUMMARY=$(curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $GEMINI_API_KEY" -d "{\"prompt\": \"$PROMPT\"}" https://api.gemini.com/v1/completions)
+          SUMMARY=$(curl -s -X POST -H "Content-Type: application/json" -d `{"contents":[{"parts":[{"text":"$PROMPT"}]}]}` 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=$GEMINI_API_KEY')
 
           # Extract summary from Gemini response using jq
-          SUMMARY=$(echo $SUMMARY | jq -r '.completions[0].text') 
+          SUMMARY=$(echo $SUMMARY | jq -r '.candidates[0].content.parts[0].text') 
 
           # Set the summary as an environment variable for the next step
           echo "SUMMARY=$SUMMARY" >> $GITHUB_ENV
