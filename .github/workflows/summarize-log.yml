@@ -31,28 +31,38 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
+          set -e  # Exit immediately if a command exits with a non-zero status
+      
+          # Combine all .txt files into LOGS
           LOGS=$(cat *.txt)
-          PROMPT="Summarize the following GitHub workflow logs:\r$LOGS"
-
+          echo "Logs Content: $LOGS"
+      
+          # Prepare the prompt with proper newline handling
+          PROMPT="Summarize the following GitHub workflow logs:\n$LOGS"
+          echo -e "Prompt: $PROMPT"
+      
+          # Create the JSON payload safely using jq
           JSON_PAYLOAD=$(jq -n --arg text "$PROMPT" '{"contents":[{"parts":[{"text":$text}]}]}')
-
-
-          # Call Gemini API using curl
-          RESPONSE=$(curl -s -X POST \
+          echo "JSON Payload: $JSON_PAYLOAD"
+      
+          # Call Gemini API using curl and capture both response body and HTTP status code
+          HTTP_RESPONSE=$(curl -s -w "HTTP_STATUS:%{http_code}" -X POST \
             -H "Content-Type: application/json" \
             -d "$JSON_PAYLOAD" \
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}")
-
-          echo "Gemini API Response: $RESPONSE"
-
-          # Extract HTTP status code
-          HTTP_STATUS=$(echo "$RESPONSE" | grep HTTP_STATUS | awk -F: '{print $2}')
+      
+          # Log the raw API response
+          echo "Gemini API Response: $HTTP_RESPONSE"
+      
+          # Extract the HTTP status code
+          HTTP_STATUS=$(echo "$HTTP_RESPONSE" | grep HTTP_STATUS | awk -F: '{print $2}')
+      
           # Extract the JSON body
-          RESPONSE_BODY=$(echo "$RESPONSE" | sed -e 's/HTTP_STATUS\:.*//g')
-          
+          RESPONSE_BODY=$(echo "$HTTP_RESPONSE" | sed -e 's/HTTP_STATUS\:.*//g')
+      
           echo "HTTP Status Code: $HTTP_STATUS"
           echo "Response Body: $RESPONSE_BODY"
-          
+      
           # Check if the HTTP status code indicates success
           if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
             echo "Gemini API call successful."
@@ -61,20 +71,22 @@ jobs:
             echo "Response Body: $RESPONSE_BODY"
             exit 1
           fi
-
+      
           # Extract summary from Gemini response using jq
-          SUMMARY=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text')
-
-           # Validate SUMMARY
+          SUMMARY=$(echo "$RESPONSE_BODY" | jq -r '.candidates[0].content.parts[0].text')
+          echo "Extracted Summary: $SUMMARY"
+      
+          # Validate SUMMARY
           if [ -z "$SUMMARY" ] || [ "$SUMMARY" == "null" ]; then
             echo "Error: Summary is empty or null."
             exit 1
           fi
-
+      
           # Set the summary as an environment variable for the next step
           echo "SUMMARY<<EOF" >> $GITHUB_ENV
           echo "$SUMMARY" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+        shell: /usr/bin/bash -e {0}
 
       - name: Post PR comment OR Log summary
         # Use a conditional step to either post a comment or log the summary
