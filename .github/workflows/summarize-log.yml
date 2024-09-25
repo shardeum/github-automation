@@ -1,0 +1,109 @@
+name: Summarize
+
+on:
+  workflow_call:
+    inputs:
+      job_name:
+        required: true
+        type: string
+    secrets:
+      github-token:
+        required: true
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: write
+
+jobs:
+  post-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download logs artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.job_name }}-logs
+
+      - name: List artifact contents
+        run: ls -lR  # List all files and directories recursively
+
+      - name: Summarize logs and post comment
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          set -e  # Exit immediately if a command exits with a non-zero status
+      
+          # Combine all .txt files into LOGS
+          LOGS=$(cat *.txt)
+          echo "Logs Content: $LOGS"
+      
+          # Prepare the prompt with proper newline handling
+          PROMPT="Summarize the following GitHub workflow logs:\n$LOGS"
+          echo -e "Prompt: $PROMPT"
+      
+          # Create the JSON payload safely using jq
+          JSON_PAYLOAD=$(jq -n --arg text "$PROMPT" '{"contents":[{"parts":[{"text":$text}]}]}')
+          echo "JSON Payload: $JSON_PAYLOAD"
+      
+          # Call Gemini API using curl and capture both response body and HTTP status code
+          HTTP_RESPONSE=$(curl -s -w "HTTP_STATUS:%{http_code}" -X POST \
+            -H "Content-Type: application/json" \
+            -d "$JSON_PAYLOAD" \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}")
+      
+          # Log the raw API response
+          echo "Gemini API Response: $HTTP_RESPONSE"
+      
+          # Extract the HTTP status code
+          HTTP_STATUS=$(echo "$HTTP_RESPONSE" | grep HTTP_STATUS | awk -F: '{print $2}')
+      
+          # Extract the JSON body
+          RESPONSE_BODY=$(echo "$HTTP_RESPONSE" | sed -e 's/HTTP_STATUS\:.*//g')
+      
+          echo "HTTP Status Code: $HTTP_STATUS"
+          echo "Response Body: $RESPONSE_BODY"
+      
+          # Check if the HTTP status code indicates success
+          if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
+            echo "Gemini API call successful."
+          else
+            echo "Error: Gemini API returned status code $HTTP_STATUS."
+            echo "Response Body: $RESPONSE_BODY"
+            exit 1
+          fi
+      
+          # Extract summary from Gemini response using jq
+          SUMMARY=$(echo "$RESPONSE_BODY" | jq -r '.candidates[0].content.parts[0].text')
+          echo "Extracted Summary: $SUMMARY"
+      
+          # Validate SUMMARY
+          if [ -z "$SUMMARY" ] || [ "$SUMMARY" == "null" ]; then
+            echo "Error: Summary is empty or null."
+            exit 1
+          fi
+      
+          # Set the summary as an environment variable for the next step
+          echo "SUMMARY<<EOF" >> $GITHUB_ENV
+          echo "$SUMMARY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+        shell: /usr/bin/bash -e {0}
+
+      - name: Post PR comment OR Log summary
+        # Use a conditional step to either post a comment or log the summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '${{ env.SUMMARY }}' 
+            });
+        env:
+          SUMMARY: ${{ env.SUMMARY }}
+
+      - name: Log summary (if not a pull request)
+        # This step will run if it's NOT a pull request
+        if: github.event_name != 'pull_request'
+        run: 'echo "Workflow summary: ${{ env.SUMMARY }}" >> workflow_summary.log'
