@@ -1,0 +1,23 @@
+name: Trigger Jenkins Job on Dev Merge
+# I'm initially using this action because it's easy to configure but it uses polling from GitHub rather
+# than waiting on Jenkins to notify it that the job has completed so we might consider refactoring this
+# in the future as polling is more taxing on both applications and can lead to a delay in notification
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  trigger-jenkins:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Jenkins Job
+        uses: mickeygoussetorg/trigger-jenkins-job@main
+        with:
+          jenkins-server: ${{ vars.JENKINS_URL }} # Jenkins URL
+          jenkins-job: ${{ vars.JENKINS_JOB }} # Defaulted on org, can override on repo
+          jenkins-username: ${{ secrets.JENKINS_USER }}
+          jenkins-pat: ${{ secrets.JENKINS_TOKEN }}
+          poll-time: ${{ vars.JENKINS_POLL_TIME }} # # Defaulted on org, can override on repo
+          timeout-value: ${{ vars.JENKINS_TIMEOUT }} # Defaulted on org, can override on repo
