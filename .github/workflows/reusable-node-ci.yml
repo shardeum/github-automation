@@ -96,6 +96,13 @@ jobs:
         with:
           toolchain: ${{ env.RUST_VERSION }}
           override: true
+          
+      - name: Configure npm for private repos
+        run: |
+          git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "git@github.com:"
+          git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Echo Input Values and Check Defaults
         run: |
