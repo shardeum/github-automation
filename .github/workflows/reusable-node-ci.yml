@@ -109,6 +109,8 @@ jobs:
 
       - name: Install and Build
         run: |
+          echo "Checking rust version"
+          rustc --version
           echo "Install dependencies and build the project..."
           npm ci
           echo "Install and Build complete."
