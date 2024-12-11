@@ -97,9 +97,6 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           override: true
 
-      - name: Build Rust Dependencies
-        run: cargo build --locked
-
       - name: Echo Input Values and Check Defaults
         run: |
           echo "*** Start - Check inputs in shared workflow ***"
