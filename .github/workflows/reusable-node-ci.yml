@@ -220,28 +220,24 @@ jobs:
         if: steps.unit_tests.outcome == 'success' && env.coverage_ran == 'true'
         id: check_coverage
         run: |
-          THRESHOLD=$(grep -oP '(?<=lines: )\d+' jest.config.js)
           TARGET_COVERAGE=${{ inputs.target-coverage }}
           echo "coverage_passed=false" >> $GITHUB_ENV
 
-          if [ -z "$COVERAGE" ] || [ -z "$TARGET_COVERAGE" ] || [ -z "$THRESHOLD" ]; then
+          if [ -z "$COVERAGE" ] || [ -z "$TARGET_COVERAGE" ]; then
             echo "One of the coverage variables is unset. Please check the test outputs."
             exit 1
           fi
 
-          if [ "$COVERAGE" -ge "$TARGET_COVERAGE" ]; then
+          if (( $(echo "$COVERAGE >= $TARGET_COVERAGE" | bc -l) )); then
             echo "Coverage is above or equal to the target of $TARGET_COVERAGE%. Test passes."
             echo "coverage_passed=true" >> $GITHUB_ENV
-          elif [ "$COVERAGE" -ge "$THRESHOLD" ]; then
-            echo "Coverage is below $TARGET_COVERAGE% but meets or exceeds the current threshold. Test passes."
-            echo "coverage_passed=true" >> $GITHUB_ENV
           else
-            echo "Coverage check failed! Coverage is below target ($TARGET_COVERAGE%) and below the current threshold ($THRESHOLD)."
+            echo "Coverage check failed! Coverage $COVERAGE% is below target $TARGET_COVERAGE%."
             if [ "${{ env.IS_UNIT_TESTS_REQUIRED }}" == "true" ]; then
               echo "Coverage has decreased below the threshold and tests are required to pass. Failing the build."
               exit 1
             else
-              echo "Coverage has decreased below the threshold but tests are NOT required to pass"
+              echo "Coverage has decreased below the target coverage but tests are NOT required to pass"
               exit 0
             fi
           fi
