@@ -62,7 +62,7 @@ jobs:
     steps:
       - name: PR Agent action step
         id: pragent
-        uses: Codium-ai/pr-agent@main
+        uses: qodo-ai/pr-agent@main
         env:
           OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -109,6 +109,8 @@ jobs:
 
       - name: Install and Build
         run: |
+          echo "Checking rust version"
+          rustc --version
           echo "Install dependencies and build the project..."
           npm ci
           echo "Install and Build complete."
@@ -134,17 +136,28 @@ jobs:
         id: test_apply_patches
         run: |
           echo "Test apply all patches..."
-          set -e
           shopt -s nullglob
           patches=(*.patch)
+          failed_patches=()
           if [ ${#patches[@]} -eq 0 ]; then
             echo "No patches to test."
           else
             for patch in "${patches[@]}"; do
               echo "Testing $patch"
-              git apply --check -v "$patch" || (echo "Failed to apply patch: $patch" && exit 1)
+              if ! git apply --check -v "$patch"; then
+                echo "Failed to apply patch: $patch"
+                failed_patches+=("$patch")
+              fi
             done
-            echo "All patches applied successfully."
+            if [ ${#failed_patches[@]} -gt 0 ]; then
+              echo "Failed patches:"
+              for failed in "${failed_patches[@]}"; do
+                echo "$failed"
+              done
+              exit 1
+            else
+              echo "All patches applied successfully."
+            fi
           fi
         continue-on-error: true
 
@@ -220,28 +233,24 @@ jobs:
         if: steps.unit_tests.outcome == 'success' && env.coverage_ran == 'true'
         id: check_coverage
         run: |
-          THRESHOLD=$(grep -oP '(?<=lines: )\d+' jest.config.js)
           TARGET_COVERAGE=${{ inputs.target-coverage }}
           echo "coverage_passed=false" >> $GITHUB_ENV
 
-          if [ -z "$COVERAGE" ] || [ -z "$TARGET_COVERAGE" ] || [ -z "$THRESHOLD" ]; then
+          if [ -z "$COVERAGE" ] || [ -z "$TARGET_COVERAGE" ]; then
             echo "One of the coverage variables is unset. Please check the test outputs."
             exit 1
           fi
 
-          if [ "$COVERAGE" -ge "$TARGET_COVERAGE" ]; then
+          if (( $(echo "$COVERAGE >= $TARGET_COVERAGE" | bc -l) )); then
             echo "Coverage is above or equal to the target of $TARGET_COVERAGE%. Test passes."
             echo "coverage_passed=true" >> $GITHUB_ENV
-          elif [ "$COVERAGE" -ge "$THRESHOLD" ]; then
-            echo "Coverage is below $TARGET_COVERAGE% but meets or exceeds the current threshold. Test passes."
-            echo "coverage_passed=true" >> $GITHUB_ENV
           else
-            echo "Coverage check failed! Coverage is below target ($TARGET_COVERAGE%) and below the current threshold ($THRESHOLD)."
+            echo "Coverage check failed! Coverage $COVERAGE% is below target $TARGET_COVERAGE%."
             if [ "${{ env.IS_UNIT_TESTS_REQUIRED }}" == "true" ]; then
               echo "Coverage has decreased below the threshold and tests are required to pass. Failing the build."
               exit 1
             else
-              echo "Coverage has decreased below the threshold but tests are NOT required to pass"
+              echo "Coverage has decreased below the target coverage but tests are NOT required to pass"
               exit 0
             fi
           fi
