@@ -66,8 +66,6 @@ jobs:
         env:
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          config.model: "o3-mini"
-          config.custom_reasoning_model: "true"
           pr_code_suggestions.commitable_code_suggestions: "true"
           pr_reviewer.require_score_review: "true"
           pr_reviewer.inline_code_comments: "true"
