@@ -66,9 +66,15 @@ jobs:
         env:
           OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          github_action_config.auto_review: "true" # enable auto review
-          github_action_config.auto_describe: "false" # disable auto describe
-          github_action_config.auto_improve: "false" # disable auto improve
+          config.model: "o3-mini"
+          config.custom_reasoning_model: "true"
+          pr_code_suggestions.commitable_code_suggestions: "true"
+          pr_code_suggestions.focus_only_on_problems: "true"
+          pr_reviewer.require_score_review: "true"
+          pr_reviewer.inline_code_comments: "true"
+          pr_description.publish_description_as_comment: "false"
+          pr_description.add_original_user_description: "true"
+          # pr_reviewer.extra_instructions: "- instruction a\n- instruction b\n..."
 
   merge-checks:
     name: QA merge checks
