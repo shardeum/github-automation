@@ -76,7 +76,14 @@ jobs:
           pr_reviewer.extra_instructions: |
             ## Reviewer Instructions
             ### General
-            - In general if there is a PR that requires updating any versions of `@shardeum` packages, ensure those changes are in an separate PR (or in the same PR in its own commit). Otherwise, merging between branch lines (which have different versions) is much more difficult.
+            - In general if there is a PR that requires updating any versions of `@shardeum-foundation` packages, ensure those changes are in an separate PR (or in the same PR in its own commit). Otherwise, merging between branch lines (which have different versions) is much more difficult.
+            ### Linear Integration
+            We should make sure that each PR is linked to a Linear issue.
+            - One of the following must be true:
+              - The PR description includes the Linear issue key (e.g. `SHARD-123`)
+              - The PR title includes the Linear issue key (e.g. `P1-123`)
+              - The PR branch name includes the Linear issue key (e.g. `P1-123`)
+              - The commit messages include the Linear issue key (e.g. `P1-123`)
             ### Unit Tests 
             - Ensure that external API calls or side effects are mocked out, not the function under test
             - Each test should import the actual function being tested
