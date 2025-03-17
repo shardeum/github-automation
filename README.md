@@ -1,7 +1,7 @@
 # github-automation
 
 ## Description
-Home for reusable GitHub workflows and other things that fit nicely here.
+Home for reusable GitHub workflows.
 
 This repo has a basic node project that is used for testing the workflows. Please feel free to add new features and make adjustments to it as needed. It should ideally match the same standards for merge checks that other repos use (same prettier config, linting config, etc). 
 
