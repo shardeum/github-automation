@@ -73,8 +73,14 @@ jobs:
           pr_reviewer.inline_code_comments: "true"
           pr_description.publish_description_as_comment: "false"
           pr_description.add_original_user_description: "true"
-          # pr_reviewer.extra_instructions: "- instruction a\n- instruction b\n..."
-
+          pr_reviewer.extra_instructions: |
+            ## Reviewer Instructions
+            ### Unit Tests 
+            - Make sure that the code being tested is not mocked out.
+            - Make sure that the code being tested is not using any external services.
+            - Make sure tests cover real functionality, not only type definitions
+            - `expect()` syntax should be used instead of `assert()`
+            - If a test is using mocks, ensure its cleaned up after the test
   merge-checks:
     name: QA merge checks
     runs-on: ubuntu-latest
