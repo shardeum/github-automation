@@ -75,9 +75,12 @@ jobs:
           pr_description.add_original_user_description: "true"
           pr_reviewer.extra_instructions: |
             ## Reviewer Instructions
+            ### General
+            - In general if there is a PR that requires updating any versions of `@shardeum` packages, ensure those changes are in an separate PR (or in the same PR in its own commit). Otherwise, merging between branch lines (which have different versions) is much more difficult.
             ### Unit Tests 
-            - Make sure that the code being tested is not mocked out.
-            - Make sure that the code being tested is not using any external services.
+            - Ensure that external API calls or side effects are mocked out, not the function under test
+            - Each test should import the actual function being tested
+            - Mock only external dependencies, never the function itself
             - Make sure tests cover real functionality, not only type definitions
             - `expect()` syntax should be used instead of `assert()`
             - If a test is using mocks, ensure its cleaned up after the test
